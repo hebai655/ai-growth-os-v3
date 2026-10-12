@@ -30,3 +30,28 @@ function ideaDialog(i){const d=$('#dialog');$('#dialog-body').innerHTML='<div cl
 function searchDialog(){const d=$('#dialog');$('#dialog-body').innerHTML='<div class="dialog-header"><h2>快速搜索</h2><button class="icon-button" data-close>×</button></div><input class="table-search" style="width:100%;height:39px;margin:4px 0 12px" placeholder="搜索页面、笔记或任务…"/><button class="search-result" data-go="dashboard">运营总览<small>页面</small></button><button class="search-result" data-go="tasks">发布一篇知识型内容<small>任务 · 今天</small></button><button class="search-result" data-go="content">冬日氛围感日常<small>内容 · 32,400 曝光</small></button>';d.showModal();$$('[data-close]').forEach(function(b){b.onclick=function(){d.close()}});$$('[data-go]').forEach(function(b){b.onclick=function(){d.close();go(b.dataset.go)}})}
 function toast(s){const t=$('#toast');t.textContent=s;t.classList.add('visible');clearTimeout(window.__t);window.__t=setTimeout(function(){t.classList.remove('visible')},2200)}
 $('#nav').innerHTML=navHtml();$('#chat').innerHTML=intro();bind();$('#ai-fab').onclick=openAI;$('#close-ai').onclick=closeAI;$('#new-chat').onclick=function(){$('#chat').innerHTML=intro();bind()};$('#upgrade').onclick=openAI;$('#header-avatar').onclick=function(){go('settings')};$('#user-account').onclick=function(){go('settings')};$('#chat-form').onsubmit=function(e){e.preventDefault();send($('#chat-input').value)};$('#chat').addEventListener('click',function(e){if(e.target.dataset.question)send(e.target.dataset.question)});$('#global-search').onclick=searchDialog;$('#notifications').onclick=function(){toast('暂无新的通知')};render();
+
+/* Product polish layer: shared interactions stay outside page templates so new screens inherit them. */
+(function(){
+  var storageKey='ai-growth-os-demo-state';
+  function persist(){try{localStorage.setItem(storageKey,JSON.stringify({tasks:app.tasks}))}catch(e){}}
+  function restore(){try{var saved=JSON.parse(localStorage.getItem(storageKey)||'null');if(saved&&Array.isArray(saved.tasks)){app.tasks=saved.tasks}}catch(e){}}
+  restore();
+  function markActive(buttons,target){buttons.forEach(function(b){b.classList.toggle('active',b===target)})}
+  function filterRows(input){var value=(input.value||'').trim().toLowerCase();var table=input.closest('.card');if(!table)return;table.querySelectorAll('tbody tr').forEach(function(row){row.hidden=!!value&&row.textContent.toLowerCase().indexOf(value)<0})}
+  function statusFilter(select){var card=select.closest('.card');if(!card)return;var value=select.value;card.querySelectorAll('tbody tr').forEach(function(row){row.hidden=value!=='全部状态'&&row.textContent.indexOf(value)<0})}
+  document.addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();searchDialog()}if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){e.preventDefault();searchDialog()}if(e.key==='Escape'&&$('#ai-panel')&&!$('#ai-panel').hidden)closeAI()});
+  document.addEventListener('input',function(e){if(e.target.classList.contains('table-search'))filterRows(e.target)});
+  document.addEventListener('change',function(e){if(e.target.matches('.filter'))statusFilter(e.target)});
+  document.addEventListener('click',function(e){
+    var tab=e.target.closest('.tabs button,.segment button,.page-tabs button');
+    if(tab){var group=tab.parentElement.querySelectorAll('button');markActive(Array.from(group),tab);if(tab.closest('.segment'))toast('已切换到 '+tab.textContent.trim()+' 数据');if(tab.closest('.page-tabs'))toast('已切换到 '+tab.textContent.trim());}
+    var nav=e.target.closest('[data-nav]');if(nav){e.preventDefault();go(nav.dataset.nav)}
+    var check=e.target.closest('[data-task]');if(check){setTimeout(persist,0)}
+  });
+  var oldToast=toast;window.toast=function(message){oldToast(message)};
+  var oldTaskDialog=taskDialog;window.taskDialog=function(prefill){oldTaskDialog(prefill);setTimeout(function(){var save=$('#save-task');if(save)save.addEventListener('click',persist,{once:true})},0)};
+  /* Keep the visible task total honest when the user checks an item from the dashboard. */
+  var oldGo=go;window.go=function(view){oldGo(view);if(view==='tasks'){var all=$('.metrics-grid.four');if(all){var labels=all.querySelectorAll('.metric-number');if(labels[0])labels[0].textContent=app.tasks.length;if(labels[1])labels[1].textContent=app.tasks.filter(function(t){return t[2]==='待完成'}).length;}}};
+  persist();
+})();
