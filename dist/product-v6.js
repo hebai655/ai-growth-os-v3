@@ -52,5 +52,7 @@
   );
   var observer=new MutationObserver(function(){clearTimeout(window.__v6timer);window.__v6timer=setTimeout(enhance,40)});observer.observe(document.getElementById('main')||document.body,{childList:true,subtree:true});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer()});
+  window.growthAiMessage=aiMessage;
   setTimeout(enhance,30);
 })();
+var growthV8Script=document.createElement('script');growthV8Script.src='product-v8.js';growthV8Script.async=false;document.head.appendChild(growthV8Script);
