@@ -60,3 +60,4 @@ $('#nav').innerHTML=navHtml();$('#chat').innerHTML=intro();bind();$('#ai-fab').o
     if(period){var parent=period.closest('.card');if(parent){parent.dataset.period=period.textContent.trim();var note=parent.querySelector('.chart-footnote');if(note)note.innerHTML='<i></i>'+period.textContent.trim()+' 视图 · 数据已更新';}}
   });
 })();
+var growthV6Script=document.createElement('script');growthV6Script.src='product-v6.js';growthV6Script.async=false;document.head.appendChild(growthV6Script);
