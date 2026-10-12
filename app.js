@@ -1,288 +1,64 @@
-const ICONS = {
-  home:`<svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M9 21v-7h6v7"/></svg>`,
-  chart:`<svg viewBox="0 0 24 24"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>`,
-  content:`<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>`,
-  task:`<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.2 2.2L16 9"/></svg>`,
-  bulb:`<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M8.2 15.2A7 7 0 1 1 15.8 15.2c-.7.5-.8 1.1-.8 1.8H9c0-.7-.1-1.3-.8-1.8Z"/></svg>`,
-  settings:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1L7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>`,
-  search:`<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>`,
-  bell:`<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>`,
-  calendar:`<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>`,
-  x:`<svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>`,
-  refresh:`<svg viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M19 12a7 7 0 1 0-2 5"/></svg>`,
-  send:`<svg viewBox="0 0 24 24"><path d="m4 4 16 8-16 8 3-8z"/><path d="M7 12h13"/></svg>`,
-  plus:`<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>`,
-  spark:`<svg viewBox="0 0 24 24"><path d="m12 3 1.2 4.3L17 9l-3.8 1.7L12 15l-1.2-4.3L7 9l3.8-1.7z"/><path d="m18 15 .7 2.3L21 18l-2.3.7L18 21l-.7-2.3L14 18l2.3-.7z"/></svg>`,
-  chevron:`<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>`,
-  menu:`<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
-  filter:`<svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>`,
-  export:`<svg viewBox="0 0 24 24"><path d="M12 3v12m0-12 4 4m-4-4L8 7"/><path d="M5 13v7h14v-7"/></svg>`,
-  check:`<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>`,
-  robot:`<svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="13" rx="3"/><path d="M12 3v3M8 11h.01M16 11h.01M8 15h8"/></svg>`
-};
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const nav=[['dashboard','运营总览','⌂'],['analytics','数据分析','▥'],['content','内容管理','▤'],['tasks','任务中心','☑'],['ideas','灵感库','♢'],['settings','账号设置','⚙']];
+const metrics=[['粉丝数','2,846','+8.4%'],['曝光量','128,400','+23.1%'],['互动率','8.7%','+1.6%'],['点赞','6,421','+12.3%'],['收藏','3,180','+36.2%'],['评论','824','-4.1%']];
+const app={view:'dashboard',profile:{name:'Alex的成长笔记',id:'XHS_DEMO_001',bio:'分享个人成长、效率工具和生活方式'},tasks:[['发布一篇知识型内容','高','待完成','今天','AI 推荐'],['优化三篇内容标题','中','待完成','今天','AI 推荐'],['分析评论下降原因','高','进行中','明天','AI 推荐'],['准备下周内容选题','低','进行中','10.15','手动创建'],['整理评论区高频问题','中','待完成','10.14','AI 推荐']],notes:[['冬日氛围感日常｜小个子也能显高','穿搭','12.06','已发布','32,400','9.1%'],['年度复盘的3个方法｜学会低成本变现','职场','12.04','已发布','28,900','8.6%'],['3个提升质量的小习惯','生活','12.02','已发布','24,300','7.2%'],['打工人快速早餐｜5分钟搞定','美食','11.30','已发布','18,200','6.8%'],['我的书架好物分享','家居','11.28','已发布','16,400','6.1%']],ideas:[['趋势机会','教程型内容','最近表现高于平均 34%，适合继续扩展“从 0 到 1”系列。'],['评论灵感','运营经验','把评论区高频问题整理成一篇清单，增强收藏价值。'],['生活方式','效率工具','把你的效率工具融入真实场景，做一组连续内容。'],['个人 IP','失败复盘','用一个具体的失败案例开启下一篇复盘。'],['增长实验','封面测试','测试 3 种不同封面信息密度，记录点击变化。'],['待完善','读书笔记','把最近的读书笔记拆成 5 个可执行方法。']]};
+function saveApp(){try{localStorage.setItem('xhs-growth-os-state',JSON.stringify({profile:app.profile,tasks:app.tasks,notes:app.notes,ideas:app.ideas}))}catch(e){}}
+try{const saved=JSON.parse(localStorage.getItem('xhs-growth-os-state')||'null');if(saved){if(saved.profile)app.profile=saved.profile;if(Array.isArray(saved.tasks))app.tasks=saved.tasks.map(function(t){return [t[0],t[1],t[2],t[3],t[4]||'手动创建']});if(Array.isArray(saved.notes))app.notes=saved.notes.map(function(n){return n.length>=6?n:[n[0],n[1],n[2],n[3]==='草稿'?'草稿':'已发布',n[3]==='草稿'?'—':n[3],n[4]||'—']});if(Array.isArray(saved.ideas))app.ideas=saved.ideas}}catch(e){}
+const insights=['教程类内容近期表现高于账号平均水平 34%。建议本周继续发布 2 篇同类型内容，并在结尾加入一个具体提问。','最近三篇内容的评论率持续下降。可以在结尾增加提问式 CTA，并主动回复前 10 条评论。','建议本周增加 2 篇“运营经验”类型内容，把最近学到的方法拆成可保存的清单。','封面信息密度偏高，下一篇可以只保留一个数字和一句结果。'];
+function navHtml(){return nav.map(function(n){return '<button class="nav-item '+(app.view===n[0]?'active':'')+'" data-view="'+n[0]+'"><span style="font-size:18px;width:18px;text-align:center">'+n[2]+'</span><span class="nav-text">'+n[1]+'</span>'+(n[0]==='tasks'?'<span class="nav-dot"></span>':'')+'</button>'}).join('')}
+function metricCards(list){return '<div class="metrics-grid '+(list.length===4?'four':'')+'">'+list.map(function(m,i){return '<article class="metric-card"><div class="metric-top"><span>'+m[0]+'</span><span>⌁</span></div><div class="metric-number">'+m[1]+'</div><div class="metric-bottom"><span class="metric-change '+(m[2][0]==='-'?'down':'')+'">'+m[2]+' '+(m[2][0]==='-'?'↘':'↗')+'</span><svg viewBox="0 0 64 20" preserveAspectRatio="none"><path d="M1 17 C 11 '+(i%2?13:17)+' 13 15 23 11 S 36 14 47 6 S 56 8 63 3" fill="none" stroke="'+(m[2][0]==='-'?'#ff9aaa':'#83cfac')+'" stroke-width="1.35"/></svg></div></article>'}).join('')+'</div>'}
+function chart(){return '<div class="trend-chart"><svg viewBox="0 0 720 220" preserveAspectRatio="none"><defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ff2442" stop-opacity=".15"/><stop offset="1" stop-color="#ff2442" stop-opacity=".02"/></linearGradient></defs><path class="chart-grid" d="M37 22H706M37 68H706M37 114H706M37 160H706"/><path d="M37 160L37 132L148 97L260 68L371 71L483 38L594 53L706 22L706 160Z" fill="url(#fill)"/><path class="chart-line" d="M37 132L148 97L260 68L371 71L483 38L594 53L706 22"/><g class="chart-axis"><text x="0" y="25">60,000</text><text x="0" y="71">40,000</text><text x="0" y="117">20,000</text><text x="17" y="163">0</text><text x="31" y="184">12.01</text><text x="255" y="184">12.03</text><text x="479" y="184">12.05</text><text x="676" y="184">12.07</text></g><circle class="chart-dot" cx="483" cy="38" r="4"/></svg><div class="chart-tooltip" style="left:67%;top:11px">12.05<b>42,300</b></div></div>'}
+function cover(i){return '<span class="cover c'+i+'">'+['冬日<br>氛围','年度<br>复盘','提升<br>质量','早餐<br>5分钟','我的<br>书架'][i%5]+'</span>'}
+function tableRows(){return app.notes.slice(0,3).map(function(n,i){return '<tr><td><div class="content-title">'+cover(i)+'<button class="table-title-link" data-note="'+i+'">'+n[0]+'</button></div></td><td>'+n[2]+'</td><td class="n">'+n[4]+'</td><td class="n">'+n[5]+'</td></tr>'}).join('')}
+function taskRows(limit){return app.tasks.slice(0,limit||app.tasks.length).map(function(t,i){return '<div class="task-line '+(t[2]==='已完成'?'done':'')+'"><label><input type="checkbox" data-task="'+i+'" '+(t[2]==='已完成'?'checked':'')+'><span>'+t[0]+'</span></label><span class="tag '+(t[1]==='高'?'high':t[1]==='中'?'medium':'low')+'">'+t[1]+'</span><span class="task-due">'+t[3]+'</span></div>'}).join('')}
+function head(title,sub,action){return '<div class="page-heading"><div><h1>'+title+'</h1><p>'+sub+'</p></div>'+(action||'')+'</div>'}
+function dashboard(){return '<div class="eyebrow"><span></span>2026 年 10 月 13 日 · 星期二</div><div class="welcome-row"><div><h1>下午好，Alex</h1><p>今天账号整体表现稳定，有 <b>'+app.tasks.filter(function(t){return t[2]!=='已完成'}).length+' 个事项</b>值得关注。</p></div><button class="date-button">▣ 2026.10.06 - 2026.10.12⌄</button></div><button class="insight-banner" id="banner"><span class="insight-badge">▥</span><span><b>AI 运营总监洞察</b><p>过去 7 天，你的账号增长 <strong>22%</strong>，主要来自教程型内容。建议继续发布同类内容，同时优化低互动笔记。</p></span><span class="insight-link">查看详情 <span>›</span></span></button>'+metricCards(metrics)+'<div class="grid-main"><section class="card"><div class="card-heading"><h2>⌁ 数据趋势</h2><button class="text-button" data-nav="analytics">查看完整分析 ›</button></div><div class="chart-controls"><div class="tabs"><button class="active">曝光量</button><button>互动量</button><button>粉丝数</button></div><div class="segment"><button class="active">7天</button><button>30天</button><button>90天</button></div></div>'+chart()+'<div class="chart-footnote"><i></i>曝光量 <b>128,400</b> · 较上周期 +23.1%</div></section><section class="card"><div class="card-heading"><h2>AI 今日洞察</h2><button class="text-button" id="all-insights">查看全部 ›</button></div><div class="insights-list">'+[['↗','增长机会'],['△','需要关注'],['♧','内容建议'],['✓','内容优化建议']].map(function(x,i){return '<button class="insight-row" data-insight="'+i+'"><span class="tile-icon">'+x[0]+'</span><span><b>'+x[1]+'</b><p>'+insights[i].slice(0,22)+'…</p></span><span class="row-arrow">›</span></button>'}).join('')+'</div></section></div><div class="bottom-grid"><section class="card"><div class="card-heading"><h2>近期内容表现</h2><button class="text-button" data-nav="content">查看全部 ›</button></div><div class="table-scroll"><table class="data-table"><thead><tr><th>内容标题</th><th>发布时间</th><th class="n">曝光量</th><th class="n">互动率</th></tr></thead><tbody>'+tableRows()+'</tbody></table></div></section><section class="card"><div class="card-heading"><h2>今日任务</h2><button class="text-button" data-nav="tasks">查看全部 ›</button></div><div class="task-summary"><div><b>'+app.tasks.filter(function(t){return t[2]==='待完成'}).length+'</b><span>待完成</span></div><div><b>'+app.tasks.filter(function(t){return t[2]==='进行中'}).length+'</b><span>进行中</span></div><div><b style="color:var(--green)">'+app.tasks.filter(function(t){return t[2]==='已完成'}).length+'</b><span>已完成</span></div></div><div class="task-checklist">'+taskRows(4)+'</div></section></div>'}
+function analytics(){return head('数据分析','从多个维度了解你的小红书账号表现，发现增长机会。','<button class="date-button">▣ 2026.10.06 - 2026.10.12⌄</button>')+'<div class="page-tabs"><button class="active">整体概览</button><button>内容分析</button><button>粉丝分析</button><button>互动分析</button></div>'+metricCards(metrics.slice(1,5))+'<section class="card large-chart"><div class="card-heading"><h2>⌁ 趋势分析</h2><div class="segment"><button class="active">7天</button><button>30天</button><button>90天</button></div></div>'+chart()+'</section><section class="card"><div class="card-heading"><h2>内容排行榜</h2><button class="text-button" data-nav="content">查看全部 ›</button></div><div class="tabs" style="margin-bottom:13px"><button class="active">按曝光量</button><button>按互动量</button><button>按收藏数</button></div><div class="table-scroll"><table class="data-table"><thead><tr><th>#</th><th>内容标题</th><th>分类</th><th>发布时间</th><th class="n">曝光量</th><th class="n">互动率</th></tr></thead><tbody>'+app.notes.map(function(n,i){return '<tr><td style="color:'+(i===0?'var(--red)':'var(--weak)')+'">'+(i+1)+'</td><td><div class="content-title">'+cover(i)+'<button class="table-title-link" data-note="'+i+'">'+n[0]+'</button></div></td><td>'+n[1]+'</td><td>'+n[2]+'</td><td class="n">'+n[4]+'</td><td class="n">'+n[5]+'</td></tr>'}).join('')+'</tbody></table></div></section>'}
+function content(){return head('内容管理','管理你的所有笔记，查看数据表现，优化内容策略。','<button class="primary" id="new-note">＋ 发布笔记</button>')+'<section class="card"><div class="toolbar"><select class="filter"><option>全部分类</option><option>职场</option><option>效率工具</option><option>运营经验</option><option>生活</option></select><select class="filter"><option>全部状态</option><option>已发布</option><option>草稿</option></select><input class="table-search" placeholder="⌕  搜索笔记标题…" /></div><div class="table-scroll"><table class="data-table"><thead><tr><th>#</th><th>内容标题</th><th>分类</th><th>发布时间</th><th>状态</th><th class="n">曝光量</th><th class="n">互动率</th></tr></thead><tbody>'+app.notes.map(function(n,i){return '<tr><td>'+(i+1)+'</td><td><div class="content-title">'+cover(i)+'<button class="table-title-link" data-note="'+i+'">'+n[0]+'</button></div></td><td>'+n[1]+'</td><td>'+n[2]+'</td><td><span class="tag '+(n[3]==='草稿'?'gray':'green')+'">'+n[3]+'</span></td><td class="n">'+n[4]+'</td><td class="n">'+n[5]+'</td></tr>'}).join('')+'</tbody></table></div><div class="table-footer"><span>共 '+app.notes.length+' 条内容</span><span>‹　 <b style="color:var(--red)">1</b>　2　3　4　…　›</span></div></section>'}
+function tasks(){return head('任务中心','将 AI 建议转化为可执行任务，持续推动账号增长。','<button class="primary" id="new-task">＋ 创建任务</button>')+'<div class="metrics-grid four">'+[['任务总数',app.tasks.length,'var(--ink)'],['待完成',app.tasks.filter(function(t){return t[2]==='待完成'}).length,'var(--red)'],['进行中',app.tasks.filter(function(t){return t[2]==='进行中'}).length,'var(--blue)'],['已完成',app.tasks.filter(function(t){return t[2]==='已完成'}).length,'var(--green)']].map(function(x){return '<article class="metric-card"><div class="metric-number" style="color:'+x[2]+'">'+x[1]+'</div><div class="metric-top">'+x[0]+'</div></article>'}).join('')+'</div><section class="card"><div class="toolbar"><select class="filter"><option>全部状态</option><option>待完成</option><option>进行中</option><option>已完成</option></select><select class="filter"><option>全部优先级</option><option>高</option><option>中</option><option>低</option></select><select class="filter"><option>全部来源</option><option>AI 推荐</option><option>手动创建</option></select><input class="table-search" placeholder="⌕  搜索任务…" /></div><div class="table-scroll"><table class="data-table"><thead><tr><th>任务标题</th><th>优先级</th><th>状态</th><th>截止时间</th><th>来源</th></tr></thead><tbody>'+app.tasks.map(function(t,i){return '<tr><td><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-task="'+i+'" '+(t[2]==='已完成'?'checked':'')+'><span>'+t[0]+'</span></label></td><td><span class="tag '+(t[1]==='高'?'high':t[1]==='中'?'medium':'low')+'">'+t[1]+'</span></td><td><span class="tag '+(t[2]==='进行中'?'gray':t[2]==='待完成'?'medium':'green')+'">'+t[2]+'</span></td><td>'+t[3]+'</td><td>'+t[4]+'</td></tr>'}).join('')+'</tbody></table></div></section>'}
+function settings(){return head('账号设置','管理账号信息、AI 偏好与通知设置.')+'<div class="page-tabs"><button class="active">账号信息</button><button>AI 偏好</button><button>通知设置</button></div><div class="settings-grid"><section class="card"><div class="profile-heading"><span class="avatar">A</span><span><b>'+app.profile.name+'</b><small>个人创作者 · 已连接</small></span></div><label class="field">小红书账号名称<input value="'+app.profile.name+'"/></label><label class="field">小红书账号 ID<input value="'+app.profile.id+'"/></label><label class="field">个人简介<textarea>'+app.profile.bio+'</textarea></label><button class="primary" id="save-settings">保存修改</button></section><section class="preview-card"><div class="preview-cover"><span class="vase"></span><span class="book"></span></div><div class="preview-body"><div class="preview-user"><span class="avatar">A</span><span><b>'+app.profile.name+'</b><small>Alex · 个人创作者</small></span></div><div class="preview-stats"><span><b>2,846</b><small>粉丝</small></span><span><b>128,400</b><small>获赞与收藏</small></span><span><b>8.7%</b><small>互动率</small></span></div><p class="preview-bio">'+app.profile.bio+'</p><button class="primary full">关注</button></div></section></div><section class="card connection-card"><div class="card-heading"><h2>数据连接</h2><span class="tag medium">'+(app.profile.source||'演示数据')+'</span></div><div class="connection-row"><span class="connection-status"><i></i><span><b>小红书账号</b><small>当前使用本地演示数据</small></span></span><button class="secondary" id="connect-account">配置数据源</button></div><p class="stats-note">接入真实账号后，系统会同步粉丝、曝光、互动和内容表现，并在这里显示最近同步时间。</p></section>'}
+function ideas(){const a=app.ideas;return head('灵感库','保存、整理和拓展下一篇内容的灵感。','<button class="primary" id="new-idea">＋ 新建灵感</button>')+'<div class="idea-grid">'+a.map(function(x,i){return '<article class="idea-card"><span class="tag '+(i===0?'high':i===1?'medium':i===a.length-1?'gray':'green')+'">'+(i===0?'上升':i===1?'值得尝试':'可连载')+'</span><h3>'+x[0]+' · '+x[1]+'</h3><p>'+x[2]+'</p><button class="text-button" data-idea="'+i+'">查看详情　›</button></article>'}).join('')+'</div>'}
+function render(){document.querySelector('#nav').innerHTML=navHtml();document.querySelector('#main').innerHTML=app.view==='dashboard'?dashboard():app.view==='analytics'?analytics():app.view==='content'?content():app.view==='tasks'?tasks():app.view==='settings'?settings():ideas();bind()}
+function bind(){ $$('#nav .nav-item').forEach(function(b){b.onclick=function(){go(b.dataset.view)}});$$('[data-nav]').forEach(function(b){b.onclick=function(){go(b.dataset.nav)}});$$('[data-task]').forEach(function(c){c.onchange=function(){app.tasks[+c.dataset.task][2]=c.checked?'已完成':'待完成';saveApp();toast(c.checked?'任务已完成':'任务已移回待完成');render()}});$$('.insight-row').forEach(function(b){b.onclick=function(){openAI(insights[+b.dataset.insight])}});$('#banner')?.addEventListener('click',function(){openAI(insights[0])});$('#all-insights')?.addEventListener('click',function(){openAI()});$('#new-task')?.addEventListener('click',function(){taskDialog()});$('#new-note')?.addEventListener('click',function(){noteDialog()});$('#new-idea')?.addEventListener('click',function(){ideaDialog()});$('#connect-account')?.addEventListener('click',function(){connectionDialog()});$('#save-settings')?.addEventListener('click',function(){const fields=document.querySelectorAll('.settings-grid .field input,.settings-grid .field textarea');if(fields[0])app.profile.name=fields[0].value.trim()||app.profile.name;if(fields[1])app.profile.id=fields[1].value.trim()||app.profile.id;if(fields[2])app.profile.bio=fields[2].value.trim()||app.profile.bio;saveApp();toast('账号信息已保存')});$$('[data-note]').forEach(function(b){b.onclick=function(){noteDialog(app.notes[+b.dataset.note])}});$$('[data-idea]').forEach(function(b){b.onclick=function(){ideaDialog(+b.dataset.idea)}})}
+function go(v){app.view=v;render();document.querySelector('#main').focus()}
+function openAI(text){$('#ai-panel').hidden=false;$('.ai-fab').style.display='none';if(text){$('#chat').innerHTML='';appendBot(text)}}
+function closeAI(){$('#ai-panel').hidden=true;$('.ai-fab').style.display='flex'}
+function intro(){return '<div class="chat-intro"><div class="ai-logo">✦</div><h3>你好，Alex 👋</h3><p>我已经分析了你最近的账号表现。<br/>你可以直接问我运营相关的问题。</p><span class="quick-label">试试这样问</span><div class="quick-questions">'+['为什么最近流量下降？','分析最近 7 天的数据','我今天应该做什么？','哪些内容值得继续做？'].map(function(x){return '<button data-question="'+x+'"><span>↗</span>'+x+'<b style="margin-left:auto;color:var(--weak)">›</b></button>'}).join('')+'</div></div>'}
+function appendBot(text){$('#chat').insertAdjacentHTML('beforeend','<div class="chat-message bot"><div class="message-label"><span class="ai-logo">✦</span><span>AI 运营总监</span></div><div class="reply"><p>'+text+'</p><div class="ai-action"><small>建议行动</small><h4>发布教程型内容</h4><span class="tag high">高优先级</span><button class="primary" data-ai-task>＋ 创建任务</button></div></div></div>');$$('[data-ai-task]').forEach(function(b){b.onclick=function(){taskDialog('发布教程型内容')}});$('#chat').scrollTop=$('#chat').scrollHeight}
+function send(text){if(!text||!text.trim())return;$('#chat').innerHTML+='<div class="chat-message user"><p>'+text+'</p></div>';$('#chat-input').value='';setTimeout(function(){appendBot('根据最近 7 天数据，教程型内容仍是最稳定的增长来源。建议本周继续发布 2 篇，并在结尾加入一个具体提问，引导评论。')},350)}
+function taskDialog(prefill){const d=$('#dialog');$('#dialog-body').innerHTML='<div class="dialog-header"><h2>创建任务</h2><button class="icon-button" data-close>×</button></div><p class="dialog-sub">把 AI 建议或你的想法变成下一步行动。</p><label class="field">任务标题<input id="d-title" value="'+(prefill||'')+'"/></label><div class="field-row"><label class="field">优先级<select id="d-priority"><option>高</option><option>中</option><option>低</option></select></label><label class="field">截止日期<select id="d-due"><option>今天</option><option>明天</option><option>3天内</option></select></label></div><label class="field">任务来源<select id="d-source"><option>AI 推荐</option><option>手动创建</option></select></label><div class="dialog-actions"><button class="secondary" data-close>取消</button><button class="primary" id="save-task">创建任务</button></div>';d.showModal();$$('[data-close]').forEach(function(b){b.onclick=function(){d.close()}});$('#save-task').onclick=function(){const title=$('#d-title').value.trim();if(!title){toast('请先填写任务标题');return}app.tasks.unshift([title,$('#d-priority').value,'待完成',$('#d-due').value,$('#d-source').value]);saveApp();d.close();toast('任务已创建');go('tasks')}}
+function noteDialog(n){const d=$('#dialog');const isNew=!n;$('#dialog-body').innerHTML='<div class="dialog-header"><h2>'+(n?n[0]:'发布新笔记')+'</h2><button class="icon-button" data-close>×</button></div><p class="dialog-sub">'+(n?'这篇内容最近 7 天的数据表现：':'先保存为草稿，之后可以在内容管理中继续完善。')+'</p>'+(n?'<div class="dialog-result"><p><b>曝光量</b>　'+n[4]+'　　<b>互动率</b>　'+n[5]+'</p><p><b>AI 建议</b>　把标题中的结果前置，首图减少装饰信息。</p></div>':'<label class="field">笔记标题<input id="note-title" placeholder="例如：我用 3 个方法提升内容质量"/></label><label class="field">内容分类<select id="note-category"><option>运营经验</option><option>效率工具</option><option>职场</option><option>生活</option></select></label>')+'<div class="dialog-actions"><button class="secondary" data-close>关闭</button>'+(isNew?'<button class="primary" id="save-note">保存草稿</button>':'')+'</div>';d.showModal();$$('[data-close]').forEach(function(b){b.onclick=function(){d.close()}});$('#save-note')?.addEventListener('click',function(){const title=$('#note-title').value.trim();if(!title){toast('请先填写笔记标题');return}app.notes.unshift([title,$('#note-category').value,'今天','草稿','—','—']);saveApp();d.close();toast('笔记草稿已保存');go('content')})}
+function ideaDialog(i){const d=$('#dialog');const presets=['教程型内容','运营经验','效率工具','失败复盘','封面测试','读书笔记'];$('#dialog-body').innerHTML='<div class="dialog-header"><h2>保存灵感</h2><button class="icon-button" data-close>×</button></div><p class="dialog-sub">灵感会保存在灵感库中，随时可以转成任务。</p><label class="field">灵感标题<input id="idea-title" value="'+(i===undefined?'':presets[i])+'"/></label><label class="field">补充描述<textarea id="idea-description" placeholder="写下你的切入角度…"></textarea></label><div class="dialog-actions"><button class="secondary" data-close>取消</button><button class="primary" id="save-idea">保存灵感</button></div>';d.showModal();$$('[data-close]').forEach(function(b){b.onclick=function(){d.close()}});$('#save-idea').onclick=function(){const title=$('#idea-title').value.trim();if(!title){toast('请先填写灵感标题');return}app.ideas.unshift(['新灵感',title,$('#idea-description').value.trim()||'等待补充内容']);saveApp();d.close();toast('灵感已保存');go('ideas')}}
+function connectionDialog(){const d=$('#dialog');$('#dialog-body').innerHTML='<div class="dialog-header"><h2>配置数据源</h2><button class="icon-button" data-close>×</button></div><p class="dialog-sub">连接真实小红书账号后，系统才能同步粉丝、曝光、互动与内容表现。</p><div class="dialog-result"><p><b>当前状态</b>　演示数据</p><p><b>下一步</b>　需要小红书开放平台授权，或由后端服务提供同步接口。</p></div><label class="field">数据源名称<input id="source-name" value="我的小红书账号"/></label><label class="field">接口地址（可选）<input id="source-url" placeholder="https://your-api.example.com/xhs"/></label><div class="dialog-actions"><button class="secondary" data-close>稍后配置</button><button class="primary" id="save-source">保存配置</button></div>';d.showModal();$$('[data-close]').forEach(function(b){b.onclick=function(){d.close()}});$('#save-source').onclick=function(){app.profile.source=$('#source-name').value.trim()||'我的小红书账号';saveApp();d.close();toast('数据源配置已保存，等待接入授权')}}
+function searchDialog(){const d=$('#dialog');$('#dialog-body').innerHTML='<div class="dialog-header"><h2>快速搜索</h2><button class="icon-button" data-close>×</button></div><input class="table-search" style="width:100%;height:39px;margin:4px 0 12px" placeholder="搜索页面、笔记或任务…"/><button class="search-result" data-go="dashboard">运营总览<small>页面</small></button><button class="search-result" data-go="tasks">发布一篇知识型内容<small>任务 · 今天</small></button><button class="search-result" data-go="content">冬日氛围感日常<small>内容 · 32,400 曝光</small></button>';d.showModal();$$('[data-close]').forEach(function(b){b.onclick=function(){d.close()}});$$('[data-go]').forEach(function(b){b.onclick=function(){d.close();go(b.dataset.go)}})}
+function toast(s){const t=$('#toast');t.textContent=s;t.classList.add('visible');clearTimeout(window.__t);window.__t=setTimeout(function(){t.classList.remove('visible')},2200)}
+$('#nav').innerHTML=navHtml();$('#chat').innerHTML=intro();bind();$('#ai-fab').onclick=openAI;$('#close-ai').onclick=closeAI;$('#new-chat').onclick=function(){$('#chat').innerHTML=intro();bind()};$('#upgrade').onclick=openAI;$('#header-avatar').onclick=function(){go('settings')};$('#user-account').onclick=function(){go('settings')};$('#chat-form').onsubmit=function(e){e.preventDefault();send($('#chat-input').value)};$('#chat').addEventListener('click',function(e){if(e.target.dataset.question)send(e.target.dataset.question)});$('#global-search').onclick=searchDialog;$('#notifications').onclick=function(){toast('暂无新的通知')};render();
 
-const DATA = {
-  trend: {
-    exposure:[11200,18800,28300,30100,42300,37200,49800],
-    interaction:[7200,11600,18200,19500,26700,24100,31200],
-    followers:[2620,2654,2701,2739,2786,2817,2846]
-  },
-  posts:[
-    {title:'冬日氛围感穿搭｜小个子也能显高',cat:'穿搭',date:'2024.12.06',views:32400,likes:1820,saves:921,comments:214,rate:9.1,status:'已发布'},
-    {title:'年度复盘的 3 个方法｜别让努力白费',cat:'成长',date:'2024.12.04',views:28900,likes:1640,saves:1030,comments:182,rate:8.6,status:'已发布'},
-    {title:'3 个提升气质的日常小习惯',cat:'生活',date:'2024.12.02',views:24300,likes:1380,saves:804,comments:169,rate:7.9,status:'已发布'},
-    {title:'打工人快速早餐｜5 分钟搞定',cat:'美食',date:'2024.11.30',views:18200,likes:920,saves:608,comments:133,rate:6.8,status:'已发布'},
-    {title:'我的高效时间管理分享',cat:'成长',date:'2024.11.28',views:16400,likes:830,saves:551,comments:106,rate:6.1,status:'已发布'},
-    {title:'秋冬显白口红合集｜黄皮必看',cat:'美妆',date:'2024.11.26',views:14800,likes:786,saves:498,comments:93,rate:5.9,status:'已发布'},
-    {title:'周末 citywalk｜上海小众打卡地',cat:'旅行',date:'2024.11.24',views:12600,likes:643,saves:420,comments:74,rate:5.4,status:'已发布'},
-    {title:'自律女孩的日常｜早起 Vlog',cat:'生活',date:'2024.11.22',views:0,likes:0,saves:0,comments:0,rate:0,status:'草稿'},
-    {title:'新手化妆教程｜10 分钟出门',cat:'美妆',date:'2024.11.20',views:11200,likes:602,saves:358,comments:78,rate:4.8,status:'已发布'},
-    {title:'家里也能做的低卡晚餐',cat:'美食',date:'2024.11.18',views:0,likes:0,saves:0,comments:0,rate:0,status:'草稿'}
-  ],
-  tasks:[
-    {id:1,title:'发布一篇年度复盘笔记',type:'内容发布',priority:'高',status:'待完成',due:'今天',owner:'Alex'},
-    {id:2,title:'分析上周内容数据',type:'数据分析',priority:'中',status:'待完成',due:'今天',owner:'Alex'},
-    {id:3,title:'优化 3 篇旧笔记标题',type:'内容优化',priority:'中',status:'进行中',due:'明天',owner:'Alex'},
-    {id:4,title:'回复高价值评论',type:'互动运营',priority:'低',status:'进行中',due:'12.10',owner:'Alex'},
-    {id:5,title:'整理热门话题趋势',type:'内容策划',priority:'中',status:'待完成',due:'本周',owner:'Alex'},
-    {id:6,title:'复盘本周内容表现',type:'数据分析',priority:'中',status:'已完成',due:'12.06',owner:'Alex'},
-    {id:7,title:'更新账号主页简介',type:'账号优化',priority:'低',status:'已完成',due:'12.05',owner:'Alex'},
-    {id:8,title:'发布知识干货笔记',type:'内容发布',priority:'高',status:'已完成',due:'12.04',owner:'Alex'}
-  ],
-  ideas:[
-    {icon:'↗',title:'冬季穿搭：小个子显高公式',desc:'近 7 天相关关键词搜索热度持续上涨，与你的穿搭内容受众匹配度高。',score:92,tags:['高搜索','适合图文','可系列化']},
-    {icon:'✦',title:'年底复盘：普通人如何做年度总结',desc:'收藏意图强，适合做步骤型清单和模板型内容。',score:89,tags:['高收藏','成长赛道','清单体']},
-    {icon:'AI',title:'AI 效率工具真实体验',desc:'评论讨论度高，可加入横向测评和真实使用场景。',score:84,tags:['热点','高评论','工具测评']},
-    {icon:'◎',title:'3 个让我持续早起的方法',desc:'与你现有成长类内容受众高度匹配，适合口播或 Vlog。',score:81,tags:['稳定需求','个人成长','Vlog']}
-  ]
-};
-
-const initial = {
-  page:'dashboard', period:7, metric:'exposure', aiOpen:true, sidebarOpen:false,
-  contentTab:'全部', contentQuery:'', contentStatus:'全部状态', contentCategory:'全部分类', contentSort:'最新发布',
-  taskTab:'全部任务', taskQuery:'', taskType:'任务类型', taskPriority:'优先级', taskStatus:'状态',
-  settingsTab:'账号信息', selectedPosts:[],
-  tasks: JSON.parse(localStorage.getItem('growth_tasks') || 'null') || DATA.tasks,
-  notifications:true, weeklyReport:true, aiProactive:true,
-  messages:[
-    {role:'assistant',html:'你好，Alex 👋<br>我是你的 AI 运营总监。你可以直接问我数据分析、内容策划、任务安排等问题。'},
-  ]
-};
-const state = {...initial};
-
-function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function num(n){return Number(n).toLocaleString('en-US')}
-function icon(name){return ICONS[name]||''}
-function navIcon(name){return `<span class="nav-icon">${icon(name)}</span>`}
-
-function Sidebar(){
-  const items=[['dashboard','home','运营总览'],['analytics','chart','数据分析'],['content','content','内容管理'],['tasks','task','任务中心'],['ideas','bulb','灵感库'],['settings','settings','账号设置']];
-  return `<aside class="sidebar ${state.sidebarOpen?'open':''}">
-    <div class="brand"><div class="brand-logo">小红</div><div><div class="brand-name">AI Growth OS</div><div class="brand-sub">小红书智能运营平台</div></div></div>
-    <div class="nav-section-label">工作空间</div>
-    <nav class="nav">${items.map(([p,i,t])=>`<button class="nav-item ${state.page===p?'active':''}" data-page="${p}">${navIcon(i)}<span>${t}</span></button>`).join('')}</nav>
-    <div class="nav-spacer"></div>
-    <div class="sidebar-foot">
-      <div class="workspace-card"><div class="workspace-kicker">本周成长进度</div><div class="workspace-title">目标：稳定提升内容质量</div><div class="workspace-progress"><span></span></div><div class="workspace-meta"><span>5 / 7 项</span><span>72%</span></div></div>
-      <div class="profile"><div class="profile-row"><div class="avatar"></div><div><div class="name">Alex</div><div class="role">个人创作者</div></div><button class="profile-menu">⌄</button></div></div>
-    </div>
-  </aside>`
-}
-
-function Topbar(){return `<header class="topbar">
-  <button class="icon-btn mobile-menu" data-action="mobile-menu">${icon('menu')}</button>
-  <button class="search-trigger" data-action="command">${icon('search')}<span class="search-copy">搜索内容、任务，或问问 AI…</span><span class="kbd">⌘ K</span></button>
-  <div class="top-actions">
-    <button class="icon-btn" data-action="notification">${icon('bell')}<span class="dot"></span></button>
-    <button class="date-pill" data-action="period-menu">${icon('calendar')}<span>2024.12.01 - 2024.12.07</span><span>⌄</span></button>
-    <button class="icon-btn" data-action="toggle-ai" title="AI 运营总监">${icon('robot')}</button>
-    <div class="mini-user"><div class="avatar"><span class="status-dot"></span></div></div>
-  </div>
-</header>`}
-
-function Shell(content,{ai=false}={}){return `<div class="app-shell">${Sidebar()}<main class="main ${ai&&state.aiOpen?'with-ai':''}">${Topbar()}${content}</main>${ai&&state.aiOpen?AISidebar():''}</div>${Overlays()}`}
-
-function Spark(values,good=true){
-  const w=100,h=28,p=2,max=Math.max(...values),min=Math.min(...values),span=max-min||1;
-  const pts=values.map((v,i)=>`${(i/(values.length-1))*w},${h-p-((v-min)/span)*(h-p*2)}`).join(' ');
-  const color=good?'#ff2442':'#ff2442';
-  return `<svg viewBox="0 0 100 28" preserveAspectRatio="none"><defs><linearGradient id="sg${values[0]}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".18"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><polygon points="0,28 ${pts} 100,28" fill="url(#sg${values[0]})"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>`
-}
-
-function Chart(values=DATA.trend.exposure){
-  const W=720,H=230,left=48,right=18,top=20,bottom=32; const max=Math.max(...values)*1.16; const min=0;
-  const x=i=>left+i*((W-left-right)/(values.length-1)); const y=v=>top+(max-v)/(max-min)*(H-top-bottom);
-  const points=values.map((v,i)=>[x(i),y(v)]); const line=points.map(p=>p.join(',')).join(' '); const area=`${left},${H-bottom} ${line} ${W-right},${H-bottom}`;
-  const yTicks=[0,.25,.5,.75,1].map(t=>Math.round(max*t/1000)*1000); const labels=['12.01','12.02','12.03','12.04','12.05','12.06','12.07'];
-  const hi=values.indexOf(Math.max(...values));
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-    <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff2442" stop-opacity=".18"/><stop offset="1" stop-color="#ff2442" stop-opacity=".01"/></linearGradient></defs>
-    ${yTicks.map((v,idx)=>{const yy=H-bottom-idx*((H-top-bottom)/4);return `<line class="grid-line" x1="${left}" y1="${yy}" x2="${W-right}" y2="${yy}"/><text class="axis-text" x="2" y="${yy+3}">${v>=1000?Math.round(v/1000)+',000':v}</text>`}).join('')}
-    ${labels.map((l,i)=>`<line class="grid-line" x1="${x(i)}" y1="${top}" x2="${x(i)}" y2="${H-bottom}" opacity=".55"/><text class="axis-text" x="${x(i)-14}" y="${H-9}">${l}</text>`).join('')}
-    <polygon class="trend-area" points="${area}"/><polyline class="trend-line" points="${line}"/>
-    ${points.map((p,i)=>`<circle class="point" cx="${p[0]}" cy="${p[1]}" r="${i===hi?4:2.6}"/>`).join('')}
-    <g transform="translate(${Math.min(W-95,Math.max(left+5,x(hi)-31))},${Math.max(4,y(values[hi])-54)})"><rect class="tooltip-card" width="73" height="40" rx="7"/><text x="11" y="15" class="axis-text" fill="#667085">${labels[hi].slice(3)}</text><text x="11" y="30" font-size="12" font-weight="700" fill="#344054">${num(values[hi])}</text></g>
-  </svg>`
-}
-
-function Dashboard(){
-  const stats=[
-    ['粉丝数','2,846','+8.4%','up',[2,4,3,6,5,10,9,14]],['曝光量','128,400','+23.1%','up',[3,5,6,10,7,12,10,15]],['互动率','8.7%','+1.6%','up',[2,3,3,5,6,9,8,12]],['点赞','6,421','+12.3%','up',[2,4,5,8,6,11,9,14]],['收藏','3,180','+36.2%','up',[1,4,3,7,5,10,8,13]],['评论','824','-4.1%','down',[6,8,7,10,8,12,11,9]]
-  ];
-  const miniTasks=state.tasks.filter(t=>t.status!=='已完成').slice(0,4);
-  return `<div class="page compact">
-    <div class="hero-grid"><div class="hero-copy"><h1>下午好，Alex</h1><p>今天账号整体表现稳定，有 <b style="color:#344054">2</b> 个事项值得关注。</p></div>
-      <div class="panel ai-summary"><h3><span style="color:var(--red)">▮▮▮</span> AI 运营总监为你总结</h3><p>过去 7 天，账号曝光增长 23%，主要来自知识干货类内容。建议继续保持该方向，同时优化笔记结尾的互动引导。</p><button class="summary-link" data-page="ai">查看分析 →</button></div>
-    </div>
-    <section class="stats">${stats.map(s=>`<div class="panel stat"><div class="stat-label">${s[0]}</div><div class="stat-value">${s[1]}</div><div class="stat-change ${s[3]}">${s[2]} ${s[3]==='up'?'↗':'↘'}</div><div class="spark">${Spark(s[4],s[3]==='up')}</div></div>`).join('')}</section>
-    <section class="dashboard-grid">
-      <div class="panel panel-pad"><div class="panel-head"><div class="panel-title">数据趋势</div><div class="panel-tools"><div class="tabs"><button class="tab ${state.metric==='exposure'?'active':''}" data-metric="exposure">曝光量</button><button class="tab ${state.metric==='interaction'?'active':''}" data-metric="interaction">互动量</button><button class="tab ${state.metric==='followers'?'active':''}" data-metric="followers">粉丝数</button></div><div class="tabs"><button class="tab ghost ${state.period===7?'active':''}" data-period="7">7 天</button><button class="tab ghost ${state.period===30?'active':''}" data-period="30">30 天</button><button class="tab ghost ${state.period===90?'active':''}" data-period="90">90 天</button></div></div></div><div class="chart-wrap">${Chart(DATA.trend[state.metric])}<div class="chart-note">示例数据 · 每日更新</div></div></div>
-      <div class="side-stack">
-        <div class="panel panel-pad"><div class="panel-head"><div class="panel-title">AI 今日洞察</div><button class="text-link" data-page="ai">查看全部 ›</button></div><div class="insight-list">
-          ${[['↗','增长机会','知识类内容收藏率高于账号平均水平 36%。'],['△','需要关注','最近三篇内容的评论率有所下降。'],['✦','内容建议','未来 3 天建议继续发布知识型内容。'],['♧','互动建议','在结尾加入问题式 CTA，促进评论。']].map(x=>`<button class="insight" data-action="ask-insight" data-question="${esc(x[1])}"><span class="insight-icon">${x[0]}</span><span><h4>${x[1]}</h4><p>${x[2]}</p></span><span class="chev">›</span></button>`).join('')}
-        </div></div>
-        <div class="panel panel-pad"><div class="panel-head"><div class="panel-title">今日任务</div><button class="text-link" data-page="tasks">查看全部 ›</button></div><div class="tasks-mini"><div><strong style="color:var(--red)">${state.tasks.filter(t=>t.status==='待完成').length}</strong><span>待完成</span></div><div><strong>${state.tasks.filter(t=>t.status==='进行中').length}</strong><span>进行中</span></div><div><strong>${state.tasks.filter(t=>t.status==='已完成').length}</strong><span>已完成</span></div></div><div class="mini-task-list">${miniTasks.map(t=>`<div class="mini-task"><button class="checkbox ${t.status==='已完成'?'checked':''}" data-toggle-task="${t.id}">${t.status==='已完成'?'✓':''}</button><span>${esc(t.title)}</span><span class="badge ${t.priority==='高'?'high':t.priority==='低'?'low':'medium'}">${t.priority}</span><span>${t.due}</span></div>`).join('')}</div></div>
-      </div>
-      <div class="panel table-panel content-list"><div class="panel-head"><div class="panel-title">近期内容表现</div><button class="text-link" data-page="content">查看全部 ›</button></div>${PostTable(DATA.posts.slice(0,5),false)}</div>
-    </section>
-  </div>`
-}
-
-function PostTable(posts,full=true){
-  return `<div class="table-wrap"><table class="table"><thead><tr>${full?'<th><input type="checkbox" data-action="select-all"></th><th>封面</th>':''}<th>内容标题</th><th>分类</th><th>发布时间</th><th>状态</th><th>曝光量</th><th>互动率</th>${full?'<th>操作</th>':''}</tr></thead><tbody>${posts.length?posts.map((p,i)=>`<tr>${full?`<td><input type="checkbox" class="post-select" data-post-index="${DATA.posts.indexOf(p)}" ${state.selectedPosts.includes(DATA.posts.indexOf(p))?'checked':''}></td><td><span class="thumb t${(DATA.posts.indexOf(p)%6)+1}"></span></td>`:''}<td><div class="post-cell">${!full?`<span class="thumb t${(i%6)+1}"></span>`:''}<span>${esc(p.title)}</span></div></td><td>${p.cat}</td><td>${p.date}</td><td><span class="badge ${p.status==='已发布'?'success':'gray'}">${p.status}</span></td><td>${p.status==='草稿'?'-':num(p.views)}</td><td>${p.status==='草稿'?'-':p.rate+'%'}</td>${full?'<td><button class="row-action" title="更多">•••</button></td>':''}</tr>`).join(''):`<tr><td colspan="10"><div class="empty"><strong>没有找到匹配内容</strong>尝试调整筛选条件或搜索关键词。</div></td></tr>`}</tbody></table></div>`
-}
-
-function Analytics(){
-  return `<div class="page"><div class="page-head"><div><h1 class="page-title">数据分析</h1><div class="page-sub">从多个维度分析你的小红书账号表现，发现增长机会。</div></div><div class="head-actions"><button class="btn">${icon('export')}导出报告</button><button class="date-pill">${icon('calendar')}2024.12.01 - 2024.12.07⌄</button></div></div>
-  <div class="subtabs"><button class="subtab active">整体概览</button><button class="subtab">内容分析</button><button class="subtab">粉丝分析</button><button class="subtab">互动分析</button></div>
-  <div class="analytics-metrics">${[['曝光量','128,400','+23.1%',82],['互动量','84,230','+18.6%',70],['互动率','8.7%','+1.6%',64],['点赞','6,421','+12.3%',76]].map(m=>`<div class="panel analytics-metric"><div class="label">${m[0]}</div><strong>${m[1]}</strong><div class="metric-foot"><span class="up" style="font-size:10px">${m[2]} ↗</span><div class="mini-bar"><span style="width:${m[3]}%"></span></div></div></div>`).join('')}</div>
-  <div class="panel panel-pad"><div class="panel-head"><div class="panel-title">趋势分析</div><div class="panel-tools"><select class="select" data-analytics-metric><option value="exposure">曝光量</option><option value="interaction">互动量</option><option value="followers">粉丝数</option></select><div class="tabs"><button class="tab ghost active">7 天</button><button class="tab ghost">30 天</button><button class="tab ghost">90 天</button></div></div></div><div class="chart-wrap">${Chart(DATA.trend.exposure)}</div></div>
-  <div class="panel table-panel" style="margin-top:13px"><div class="panel-head"><div class="panel-title">内容排行榜</div><button class="text-link" data-page="content">查看全部 ›</button></div><div class="tabs" style="margin-bottom:9px"><button class="tab active">按曝光量</button><button class="tab">按互动量</button><button class="tab">按点赞数</button><button class="tab">按收藏数</button><button class="tab">按评论数</button></div>${PostTable([...DATA.posts].filter(p=>p.status==='已发布').sort((a,b)=>b.views-a.views).slice(0,6),false)}</div>
-  </div>`
-}
-
-function filteredPosts(){
-  let rows=[...DATA.posts];
-  if(state.contentTab==='已发布') rows=rows.filter(p=>p.status==='已发布');
-  if(state.contentTab==='草稿箱') rows=rows.filter(p=>p.status==='草稿');
-  if(state.contentStatus!=='全部状态') rows=rows.filter(p=>p.status===state.contentStatus);
-  if(state.contentCategory!=='全部分类') rows=rows.filter(p=>p.cat===state.contentCategory);
-  if(state.contentQuery) rows=rows.filter(p=>p.title.toLowerCase().includes(state.contentQuery.toLowerCase()));
-  if(state.contentSort==='曝光最高') rows.sort((a,b)=>b.views-a.views);
-  return rows;
-}
-function Content(){
-  const tabs=['全部','已发布','草稿箱','待发布','回收站']; const rows=filteredPosts();
-  return `<div class="page"><div class="page-head"><div><h1 class="page-title">内容管理</h1><div class="page-sub">管理你的小红书笔记，查看数据表现，优化内容策略。</div></div><div class="head-actions"><button class="btn" data-action="bulk-analyze" ${state.selectedPosts.length?'':'disabled'}>${icon('spark')}AI 批量分析${state.selectedPosts.length?` (${state.selectedPosts.length})`:''}</button><button class="btn btn-primary" data-action="publish">${icon('plus')}发布笔记</button></div></div>
-  <div class="subtabs">${tabs.map(t=>`<button class="subtab ${state.contentTab===t?'active':''}" data-content-tab="${t}">${t}</button>`).join('')}</div>
-  <div class="panel content-shell"><div class="content-toolbar"><div class="filters"><select class="select" id="contentCategory"><option>全部分类</option>${['穿搭','成长','生活','美食','美妆','旅行'].map(x=>`<option ${state.contentCategory===x?'selected':''}>${x}</option>`).join('')}</select><select class="select" id="contentStatus"><option>全部状态</option><option ${state.contentStatus==='已发布'?'selected':''}>已发布</option><option ${state.contentStatus==='草稿'?'selected':''}>草稿</option></select><input class="filter-input" id="contentQuery" value="${esc(state.contentQuery)}" placeholder="搜索笔记标题..."/><select class="select" id="contentSort" style="margin-left:auto"><option>最新发布</option><option ${state.contentSort==='曝光最高'?'selected':''}>曝光最高</option></select></div></div><div class="content-table-wrap">${PostTable(rows,true)}</div><div class="pagination"><span class="pagination-meta">共 ${rows.length} 条</span><button class="page-dot">‹</button><button class="page-dot active">1</button><button class="page-dot">2</button><button class="page-dot">3</button><button class="page-dot">›</button></div></div>
-  </div>`
-}
-
-function filteredTasks(){
-  let rows=[...state.tasks];
-  if(state.taskTab!=='全部任务') rows=rows.filter(t=>t.status===state.taskTab.replace('已延期','已延期'));
-  if(state.taskType!=='任务类型') rows=rows.filter(t=>t.type===state.taskType);
-  if(state.taskPriority!=='优先级') rows=rows.filter(t=>t.priority===state.taskPriority);
-  if(state.taskStatus!=='状态') rows=rows.filter(t=>t.status===state.taskStatus);
-  if(state.taskQuery) rows=rows.filter(t=>t.title.toLowerCase().includes(state.taskQuery.toLowerCase()));
-  return rows;
-}
-function Tasks(){
-  const rows=filteredTasks(); const counts={all:state.tasks.length,pending:state.tasks.filter(t=>t.status==='待完成').length,doing:state.tasks.filter(t=>t.status==='进行中').length,done:state.tasks.filter(t=>t.status==='已完成').length};
-  return `<div class="page"><div class="page-head"><div><h1 class="page-title">任务中心</h1><div class="page-sub">将 AI 建议转化为可执行任务，持续提升账号表现。</div></div><button class="btn btn-primary" data-action="new-task">${icon('plus')}创建任务</button></div>
-  <div class="subtabs">${['全部任务','待完成','进行中','已完成','已延期'].map(t=>`<button class="subtab ${state.taskTab===t?'active':''}" data-task-tab="${t}">${t}</button>`).join('')}</div>
-  <div class="task-stats">${[[counts.all,'全部任务','#111827',100],[counts.pending,'待完成','#ff2442',Math.round(counts.pending/counts.all*100)],[counts.doing,'进行中','#2f7cf6',Math.round(counts.doing/counts.all*100)],[counts.done,'已完成','#18a46b',Math.round(counts.done/counts.all*100)]].map(s=>`<div class="panel task-stat" style="color:${s[2]}"><strong>${s[0]}</strong><span>${s[1]}</span><div class="progress"><i style="width:${s[3]}%"></i></div></div>`).join('')}</div>
-  <div class="panel table-panel task-main"><div class="filters"><select class="select" id="taskType"><option>任务类型</option>${[...new Set(state.tasks.map(t=>t.type))].map(x=>`<option ${state.taskType===x?'selected':''}>${x}</option>`).join('')}</select><select class="select" id="taskPriority"><option>优先级</option>${['高','中','低'].map(x=>`<option ${state.taskPriority===x?'selected':''}>${x}</option>`).join('')}</select><select class="select" id="taskStatus"><option>状态</option>${['待完成','进行中','已完成'].map(x=>`<option ${state.taskStatus===x?'selected':''}>${x}</option>`).join('')}</select><input class="filter-input" id="taskQuery" value="${esc(state.taskQuery)}" style="margin-left:auto" placeholder="搜索任务..."/></div><div class="table-wrap"><table class="table"><thead><tr><th></th><th>任务标题</th><th>任务类型</th><th>优先级</th><th>状态</th><th>截止时间</th><th>负责人</th><th>操作</th></tr></thead><tbody>${rows.length?rows.map(t=>`<tr><td><button class="checkbox ${t.status==='已完成'?'checked':''}" data-toggle-task="${t.id}">${t.status==='已完成'?'✓':''}</button></td><td><div class="task-title-cell ${t.status==='已完成'?'done':''}">${esc(t.title)}</div></td><td>${t.type}</td><td><span class="badge ${t.priority==='高'?'high':t.priority==='低'?'low':'medium'}">${t.priority}</span></td><td><span class="badge ${t.status==='已完成'?'success':t.status==='进行中'?'low':'gray'}">${t.status}</span></td><td style="${t.due==='今天'?'color:#ff2442;font-weight:650':''}">${t.due}</td><td>${t.owner}</td><td><button class="row-action" data-action="task-menu" data-task="${t.id}">•••</button></td></tr>`).join(''):`<tr><td colspan="8"><div class="empty"><strong>暂无匹配任务</strong>调整筛选条件，或创建一个新任务。</div></td></tr>`}</tbody></table></div></div>
-  </div>`
-}
-
-function Ideas(){
-  const keywords=[['年度复盘',94,'+42%'],['冬季穿搭',86,'+31%'],['AI 效率工具',78,'+27%'],['早起习惯',63,'+18%'],['低卡晚餐',51,'+12%']];
-  return `<div class="page"><div class="page-head"><div><h1 class="page-title">灵感库</h1><div class="page-sub">AI 根据近期趋势、账号画像与历史表现，为你筛选更值得做的内容方向。</div></div><button class="btn btn-primary" data-action="generate-ideas">${icon('spark')}生成灵感</button></div>
-  <div class="ideas-grid"><div><div class="panel panel-pad"><div class="panel-head"><div class="panel-title">今日推荐选题</div><div class="tabs"><button class="tab active">高匹配</button><button class="tab">高热度</button><button class="tab">高收藏</button></div></div><div style="display:grid;gap:9px">${DATA.ideas.map((x,i)=>`<div class="idea-card" style="border:1px solid var(--line);border-radius:11px"><div class="idea-top"><div class="idea-icon">${x.icon}</div><div><div class="idea-title">${x.title}</div><div class="idea-desc">${x.desc}</div></div><div class="idea-score"><strong>${x.score}</strong><span>匹配分</span></div></div><div class="idea-tags">${x.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="idea-actions"><button class="btn" data-action="idea-outline" data-idea="${i}">生成大纲</button><button class="btn" data-action="idea-task" data-idea="${i}">加入任务</button><button class="btn" data-page="ai">问问 AI</button></div></div>`).join('')}</div></div></div>
-  <div class="side-stack"><div class="panel panel-pad"><div class="panel-head"><div class="panel-title">近期热词趋势</div><span style="font-size:9px;color:#98a2b3">近 7 天</span></div><div class="trend-keywords">${keywords.map(k=>`<div class="keyword-row"><span>${k[0]}</span><span class="keyword-bar"><i style="width:${k[1]}%"></i></span><b>${k[2]}</b></div>`).join('')}</div></div><div class="panel panel-pad"><div class="panel-title">选题策略建议</div><div class="message-rich" style="margin-top:10px;color:#667085">当前账号更适合采用「<strong>70% 稳定内容 + 20% 趋势内容 + 10% 实验内容</strong>」的组合。优先扩展已经验证过的成长与知识干货方向，再用趋势选题提高新增曝光。</div><button class="btn btn-primary" style="width:100%;margin-top:12px" data-page="ai">让 AI 帮我排下周选题</button></div></div></div>
-  </div>`
-}
-
-function Settings(){
-  return `<div class="page"><div class="page-head"><div><h1 class="page-title">账号设置</h1><div class="page-sub">配置账号资料、AI 工作偏好与消息提醒。</div></div></div><div class="settings-tabs">${['账号信息','AI 偏好','通知设置'].map(t=>`<button class="settings-tab ${state.settingsTab===t?'active':''}" data-settings-tab="${t}">${t}</button>`).join('')}</div>${state.settingsTab==='账号信息'?SettingsAccount():state.settingsTab==='AI 偏好'?SettingsAI():SettingsNotifications()}</div>`
-}
-function SettingsAccount(){return `<div class="settings-grid"><div class="panel settings-card"><div class="section-title">基本信息</div><div class="identity"><div class="avatar large"></div><div><strong>Alex</strong><span>个人创作者</span></div><button class="btn" style="margin-left:auto">更换头像</button></div><div class="field"><label>小红书账号名称</label><input id="accountName" value="Alex的成长笔记"/><div class="field-meta"><span>建议保持与小红书账号一致</span><span>8/20</span></div></div><div class="field"><label>账号 ID</label><input value="xhs_demo_001" disabled/></div><div class="field"><label>个人简介</label><textarea id="bioText">分享个人成长、效率工具和生活方式</textarea><div class="field-meta"><span>让 AI 更准确理解你的内容定位</span><span>16/100</span></div></div><button class="btn btn-primary" data-action="save-settings">保存修改</button></div><div class="panel preview-card"><div class="preview-cover"></div><div class="preview-body"><div class="avatar preview-avatar"></div><div class="preview-name">Alex的成长笔记</div><div class="preview-id">小红书号：xhs_demo_001</div><div class="preview-stats"><div><strong>2,846</strong><span>粉丝</span></div><div><strong>128,400</strong><span>近 7 天曝光</span></div><div><strong>8.7%</strong><span>互动率</span></div></div><div style="font-size:10px;color:#667085;margin-bottom:12px">分享个人成长、效率工具和生活方式</div><button class="follow">关注</button></div></div></div>`}
-function SettingsAI(){return `<div class="settings-grid"><div class="panel settings-card"><div class="section-title">AI 工作方式</div><div class="switch-row"><div class="switch-copy"><strong>主动发现问题</strong><span>当数据出现异常时，AI 主动提醒并给出建议。</span></div><button class="switch ${state.aiProactive?'on':''}" data-toggle="aiProactive"></button></div><div class="switch-row"><div class="switch-copy"><strong>自动生成周复盘</strong><span>每周汇总账号增长、内容表现和下一步建议。</span></div><button class="switch ${state.weeklyReport?'on':''}" data-toggle="weeklyReport"></button></div><div class="field" style="margin-top:14px"><label>AI 回答风格</label><select class="select" style="width:100%;height:38px"><option>专业、简洁、可执行</option><option>详细分析型</option><option>创意脑暴型</option></select></div><div class="field"><label>优先增长目标</label><select class="select" style="width:100%;height:38px"><option>AI 根据阶段自动调整</option><option>曝光增长</option><option>互动增长</option><option>粉丝增长</option></select></div></div><div class="panel settings-card"><div class="section-title">AI 运营总监角色</div><div class="message-rich" style="color:#667085">AI 会以「运营总监」的方式持续理解账号数据、内容表现和任务进度。默认由 AI 负责分析、规划与提醒，涉及发布、删除、批量修改等关键操作时仍由你确认。</div><div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafbfc"><div style="font-size:10px;font-weight:700">当前工作原则</div><div style="font-size:9px;color:#98a2b3;line-height:1.8;margin-top:6px">• 先解释原因，再给行动建议<br>• 优先参考你自己的历史数据<br>• 建议必须尽量转化为任务<br>• 重要操作保持人工审批</div></div></div></div>`}
-function SettingsNotifications(){return `<div class="settings-grid"><div class="panel settings-card"><div class="section-title">通知设置</div><div class="switch-row"><div class="switch-copy"><strong>站内通知</strong><span>任务到期、数据异常、AI 洞察更新时提醒。</span></div><button class="switch ${state.notifications?'on':''}" data-toggle="notifications"></button></div><div class="switch-row"><div class="switch-copy"><strong>每周复盘提醒</strong><span>每周一提醒查看上周复盘和本周计划。</span></div><button class="switch ${state.weeklyReport?'on':''}" data-toggle="weeklyReport"></button></div><div class="switch-row"><div class="switch-copy"><strong>增长机会提醒</strong><span>发现内容方向或热词机会时及时通知。</span></div><button class="switch on"></button></div></div><div class="panel settings-card"><div class="section-title">提醒强度</div><div class="field"><label>通知频率</label><select class="select" style="width:100%;height:38px"><option>仅重要提醒</option><option>标准</option><option>全部动态</option></select></div><div class="field"><label>免打扰时间</label><div style="display:flex;gap:7px"><input value="23:00"/><input value="08:00"/></div></div></div></div>`}
-
-function AIPage(){return `<div class="app-shell">${Sidebar()}<main class="main ai-page"><div class="ai-page-head"><button class="icon-btn mobile-menu" data-action="mobile-menu">${icon('menu')}</button><div class="ai-page-title"><div class="robot">${icon('robot')}</div><div><h1>AI 运营总监 <span class="online">● 在线</span></h1><p>基于账号数据与运营策略，为你提供分析、规划和执行建议。</p></div></div><div class="ai-page-actions"><button class="btn" data-action="clear-chat">新建对话</button><button class="btn" data-page="dashboard">返回工作台</button></div></div><div class="ai-page-content"><div class="ai-quick-row">${['为什么最近流量下降？','分析最近 7 天的数据','推荐下周的内容选题','如何提升互动率？','帮我做本周复盘'].map(q=>`<button class="quick" data-quick="${esc(q)}">${q}</button>`).join('')}</div><div class="ai-conversation" id="aiMessages">${renderMessages(true)}</div></div><div class="ai-composer"><textarea id="aiPageInput" placeholder="输入你的问题，例如：帮我分析最近 7 天的数据…"></textarea><div class="composer-foot"><span>Shift + Enter 换行</span><button class="send-btn" data-action="send-ai" data-input="aiPageInput">${icon('send')}</button></div></div></main></div>${Overlays()}`}
-
-function renderMessages(full=false){return state.messages.map((m,i)=>m.role==='user'?`<div class="message-row user"><div class="chat-bubble">${esc(m.text||'')}</div><div class="avatar"></div></div>`:`<div class="message-row"><div class="robot">${icon('robot')}</div><div class="chat-bubble ${m.rich?'message-rich':''}">${m.html||esc(m.text||'')}${m.actions?`<div class="message-actions"><button class="btn btn-primary" data-action="new-task">${icon('plus')}创建任务</button><button class="btn" data-page="analytics">查看数据分析</button></div>`:''}${i>0?'<div class="feedback"><button>♡</button><button>♧</button></div>':''}</div></div>`).join('')}
-
-function AISidebar(){return `<aside class="ai-side"><div class="ai-side-head"><div class="avatar"></div><div><div class="ai-title">AI 运营总监 <span class="online">● 在线</span></div><div class="ai-role">基于数据的专业运营顾问</div></div><div class="ai-head-actions"><button class="plain-icon" data-page="ai">↗</button><button class="plain-icon" data-action="toggle-ai">${icon('x')}</button></div></div><div class="ai-side-body" id="aiSideBody"><div class="ai-welcome"><div class="avatar"></div><div class="chat-bubble">你好，Alex 👋<br>我会持续关注账号数据，并把值得处理的问题整理成可执行建议。</div></div><div class="quick-list">${['为什么最近流量下降？','分析最近 7 天的数据','我今天应该做什么？','哪些内容值得继续做？'].map(q=>`<button class="quick" data-quick="${q}">${q}</button>`).join('')}</div><div class="chat-time">今天 14:32</div>${renderMessages(false)}</div><div class="ai-composer"><textarea id="aiSideInput" placeholder="输入你的问题…"></textarea><div class="composer-foot"><span>Shift + Enter 换行</span><button class="send-btn" data-action="send-ai" data-input="aiSideInput">${icon('send')}</button></div></div></aside>`}
-
-function Command(){const entries=[['dashboard','home','运营总览','查看账号整体表现'],['analytics','chart','数据分析','趋势、内容、粉丝与互动'],['content','content','内容管理','管理笔记与表现'],['tasks','task','任务中心','查看和推进运营任务'],['ideas','bulb','灵感库','发现选题与趋势'],['ai','robot','AI 运营总监','直接提问与生成策略']];return `<div class="command-overlay" data-action="close-command"><div class="command" onclick="event.stopPropagation()"><div class="command-search">${icon('search')}<input id="cmdInput" autofocus placeholder="搜索页面、内容或任务…"/><span class="kbd">ESC</span></div><div class="command-results"><div class="cmd-label">快速前往</div>${entries.map(e=>`<button class="cmd-item" data-page="${e[0]}">${navIcon(e[1])}<span>${e[2]}</span><span class="cmd-meta">${e[3]}</span></button>`).join('')}<div class="cmd-label">快捷操作</div><button class="cmd-item" data-action="new-task">${navIcon('task')}<span>创建运营任务</span><span class="cmd-meta">任务中心</span></button><button class="cmd-item" data-action="ask-analysis">${navIcon('spark')}<span>让 AI 分析最近 7 天</span><span class="cmd-meta">AI</span></button></div></div></div>`}
-function TaskModal(prefill=''){return `<div class="modal-overlay"><div class="modal"><div class="modal-head"><h3>创建任务</h3><button class="modal-close" data-action="close-modal">×</button></div><div class="modal-body"><div class="form-grid"><div class="field full"><label>任务标题</label><input id="newTaskTitle" value="${esc(prefill)}" placeholder="例如：发布一篇年度复盘笔记"/></div><div class="field"><label>任务类型</label><select id="newTaskType" class="select" style="width:100%;height:36px"><option>内容发布</option><option>内容优化</option><option>数据分析</option><option>互动运营</option><option>内容策划</option></select></div><div class="field"><label>优先级</label><select id="newTaskPriority" class="select" style="width:100%;height:36px"><option>高</option><option selected>中</option><option>低</option></select></div><div class="field"><label>截止时间</label><select id="newTaskDue" class="select" style="width:100%;height:36px"><option>今天</option><option selected>明天</option><option>本周</option><option>12.10</option></select></div><div class="field"><label>负责人</label><input value="Alex" disabled/></div></div></div><div class="modal-foot"><button class="btn" data-action="close-modal">取消</button><button class="btn btn-primary" data-action="save-task">创建任务</button></div></div></div>`}
-function PeriodMenu(){return `<div class="modal-overlay"><div class="modal" style="width:360px"><div class="modal-head"><h3>选择分析周期</h3><button class="modal-close" data-action="close-modal">×</button></div><div class="modal-body"><div style="display:grid;gap:7px"><button class="cmd-item" data-period="7"><span>近 7 天</span><span class="cmd-meta">2024.12.01 - 12.07</span></button><button class="cmd-item" data-period="30"><span>近 30 天</span><span class="cmd-meta">更适合观察趋势</span></button><button class="cmd-item" data-period="90"><span>近 90 天</span><span class="cmd-meta">更适合阶段复盘</span></button></div></div></div></div>`}
-function Overlays(){return `${state.overlay==='command'?Command():''}${state.overlay==='task'?TaskModal(state.taskPrefill||''):''}${state.overlay==='period'?PeriodMenu():''}<div class="toast-stack" id="toastStack"></div>`}
-
-function route(){const app=document.getElementById('app'); app.innerHTML=state.page==='ai'?AIPage():Shell(pageContent(),{ai:state.page==='dashboard'}); bind();}
-function pageContent(){return ({dashboard:Dashboard,analytics:Analytics,content:Content,tasks:Tasks,ideas:Ideas,settings:Settings}[state.page]||Dashboard)()}
-function setPage(p){state.page=p;state.sidebarOpen=false;state.overlay=null;route();window.scrollTo(0,0)}
-function saveTasks(){localStorage.setItem('growth_tasks',JSON.stringify(state.tasks))}
-function toast(title,desc=''){const stack=document.getElementById('toastStack'); if(!stack)return; const el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">✓</div><div><strong>${esc(title)}</strong>${desc?`<span>${esc(desc)}</span>`:''}</div>`;stack.appendChild(el);setTimeout(()=>el.remove(),2600)}
-
-function aiResponse(q){
-  const lower=q.toLowerCase();
-  if(q.includes('7 天')||q.includes('数据')||q.includes('分析')) return {html:`<strong>最近 7 天的核心结论：</strong><ol><li>曝光量达到 <b>128,400</b>，较上周增长 <b>23.1%</b>。</li><li>知识干货与经验总结类内容的收藏表现最好。</li><li>评论率略有下降，建议在结尾增加问题式 CTA。</li></ol><strong>接下来建议：</strong> 保持 3–4 篇稳定更新，并优先复用已经验证过的知识型选题。`,rich:true,actions:true};
-  if(q.includes('流量')||q.includes('下降')) return {html:`从当前演示数据看，整体曝光并没有下降，但<strong>最近 3 篇内容的评论深度偏弱</strong>。如果你指的是单篇笔记流量，我建议先检查：首图点击率、发布后 2 小时互动速度、关键词覆盖和账号内容一致性。`,rich:true,actions:true};
-  if(q.includes('选题')||q.includes('内容')) return {html:`下周可以优先做 3 个方向：<ol><li><b>年底复盘</b>：收藏意图强，适合清单体。</li><li><b>AI 效率工具</b>：讨论度高，适合真实体验。</li><li><b>个人成长方法</b>：与你现有受众匹配度最高。</li></ol>我建议采用 70% 稳定内容 + 20% 趋势内容 + 10% 实验内容。`,rich:true,actions:true};
-  if(q.includes('今天')||q.includes('任务')) return {html:`今天优先做这 3 件事：<ol><li>完成年度复盘笔记并发布。</li><li>复盘上周内容数据，记录高收藏结构。</li><li>回复 10 条高价值评论，提高互动深度。</li></ol>其中第 1 项对增长影响最大。`,rich:true,actions:true};
-  return {html:`收到。我会优先结合账号历史表现、近期内容结构和当前任务状态来判断。就这个问题，建议先明确<strong>目标指标 → 找到影响变量 → 形成一个可验证动作</strong>，然后在 3–7 天后复盘结果。`,rich:true,actions:true};
-}
-function sendAI(inputId,forced){const input=document.getElementById(inputId);const q=forced||(input?input.value.trim():'');if(!q)return;state.messages.push({role:'user',text:q});const r=aiResponse(q);state.messages.push({role:'assistant',...r});if(input)input.value='';route();setTimeout(()=>{const el=document.getElementById(state.page==='ai'?'aiMessages':'aiSideBody');if(el)el.scrollTop=el.scrollHeight},0)}
-
-function bind(){
-  document.querySelectorAll('[data-page]').forEach(el=>el.onclick=()=>setPage(el.dataset.page));
-  document.querySelectorAll('[data-metric]').forEach(el=>el.onclick=()=>{state.metric=el.dataset.metric;route()});
-  document.querySelectorAll('[data-period]').forEach(el=>el.onclick=()=>{state.period=Number(el.dataset.period);state.overlay=null;route();toast('分析周期已切换',`当前显示近 ${state.period} 天视图（演示数据）`)});
-  document.querySelectorAll('[data-content-tab]').forEach(el=>el.onclick=()=>{state.contentTab=el.dataset.contentTab;route()});
-  document.querySelectorAll('[data-task-tab]').forEach(el=>el.onclick=()=>{state.taskTab=el.dataset.taskTab;route()});
-  document.querySelectorAll('[data-settings-tab]').forEach(el=>el.onclick=()=>{state.settingsTab=el.dataset.settingsTab;route()});
-  document.querySelectorAll('[data-toggle-task]').forEach(el=>el.onclick=()=>{const t=state.tasks.find(x=>x.id===Number(el.dataset.toggleTask));if(!t)return;t.status=t.status==='已完成'?'待完成':'已完成';saveTasks();route();toast(t.status==='已完成'?'任务已完成':'任务恢复为待完成',t.title)});
-  document.querySelectorAll('[data-toggle]').forEach(el=>el.onclick=()=>{state[el.dataset.toggle]=!state[el.dataset.toggle];route();toast('设置已更新')});
-  document.querySelectorAll('.post-select').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.postIndex); if(el.checked){if(!state.selectedPosts.includes(i))state.selectedPosts.push(i)}else state.selectedPosts=state.selectedPosts.filter(x=>x!==i); route()});
-  document.querySelectorAll('[data-quick]').forEach(el=>el.onclick=()=>sendAI(state.page==='ai'?'aiPageInput':'aiSideInput',el.dataset.quick));
-  document.querySelectorAll('[data-action="ask-insight"]').forEach(el=>el.onclick=()=>{state.aiOpen=true;route();setTimeout(()=>sendAI('aiSideInput',`请详细解释：${el.dataset.question}`),20)});
-  document.querySelectorAll('[data-action]').forEach(el=>{
-    const a=el.dataset.action;
-    if(a==='command') el.onclick=()=>{state.overlay='command';route();setTimeout(()=>document.getElementById('cmdInput')?.focus(),10)};
-    if(a==='close-command') el.onclick=()=>{state.overlay=null;route()};
-    if(a==='new-task') el.onclick=()=>{state.overlay='task';state.taskPrefill='';route()};
-    if(a==='close-modal') el.onclick=()=>{state.overlay=null;route()};
-    if(a==='period-menu') el.onclick=()=>{state.overlay='period';route()};
-    if(a==='toggle-ai') el.onclick=()=>{state.aiOpen=!state.aiOpen;route()};
-    if(a==='mobile-menu') el.onclick=()=>{state.sidebarOpen=!state.sidebarOpen;route()};
-    if(a==='save-settings') el.onclick=()=>toast('账号信息已保存','演示版已完成前端交互');
-    if(a==='notification') el.onclick=()=>toast('暂无新的重要通知','最近一次 AI 洞察已在运营总览展示');
-    if(a==='publish') el.onclick=()=>toast('发布流程已预留','下一阶段可接入小红书发布与审批流程');
-    if(a==='bulk-analyze') el.onclick=()=>{if(state.selectedPosts.length){state.page='ai';state.messages.push({role:'user',text:`分析我选中的 ${state.selectedPosts.length} 篇内容`});state.messages.push({role:'assistant',...aiResponse('分析数据')});route()}};
-    if(a==='generate-ideas') el.onclick=()=>toast('已生成 4 个新选题','根据账号画像与近期趋势排序');
-    if(a==='idea-outline') el.onclick=()=>{const x=DATA.ideas[Number(el.dataset.idea)];state.page='ai';state.messages.push({role:'user',text:`请为「${x.title}」生成小红书笔记大纲`});state.messages.push({role:'assistant',html:`可以。这个选题建议采用「<strong>痛点开场 → 3 个核心方法 → 个人案例 → 问题式 CTA</strong>」的结构。<br><br>我已经把方向带到 AI 对话页，你可以继续让我扩写标题、正文和首图文案。`,rich:true,actions:true});route()};
-    if(a==='idea-task') el.onclick=()=>{const x=DATA.ideas[Number(el.dataset.idea)];state.overlay='task';state.taskPrefill=`制作选题：${x.title}`;route()};
-    if(a==='clear-chat') el.onclick=()=>{state.messages=[initial.messages[0]];route();toast('已创建新对话')};
-    if(a==='send-ai') el.onclick=()=>sendAI(el.dataset.input);
-    if(a==='ask-analysis') el.onclick=()=>{state.overlay=null;state.page='ai';state.messages.push({role:'user',text:'分析最近 7 天的数据'});state.messages.push({role:'assistant',...aiResponse('分析最近 7 天的数据')});route()};
-    if(a==='save-task') el.onclick=()=>{const title=document.getElementById('newTaskTitle')?.value.trim();if(!title){toast('请输入任务标题');return}state.tasks.unshift({id:Date.now(),title,type:document.getElementById('newTaskType').value,priority:document.getElementById('newTaskPriority').value,status:'待完成',due:document.getElementById('newTaskDue').value,owner:'Alex'});saveTasks();state.overlay=null;state.taskPrefill='';route();toast('任务已创建',title)};
+(function(){
+  function applyTableFilters(card){
+    if(!card)return;
+    var selects=Array.from(card.querySelectorAll('.filter'));
+    var search=(card.querySelector('.table-search')?.value||'').trim().toLowerCase();
+    var rows=Array.from(card.querySelectorAll('tbody tr'));
+    rows.forEach(function(row){
+      var text=row.textContent.toLowerCase(), ok=!search||text.indexOf(search)>=0;
+      selects.forEach(function(sel,i){
+        var val=sel.value;
+        var ignored=val.indexOf('全部')===0;
+        if(!ignored&&i===0)ok=ok&&text.indexOf(val.toLowerCase())>=0;
+        if(!ignored&&i>0)ok=ok&&text.indexOf(val.toLowerCase())>=0;
+      });
+      row.hidden=!ok;
+    });
+    var footer=card.querySelector('.table-footer span');
+    if(footer)footer.textContent='显示 '+rows.filter(function(r){return !r.hidden}).length+' 条';
+  }
+  document.addEventListener('change',function(e){if(e.target.classList.contains('filter'))applyTableFilters(e.target.closest('.card'))});
+  document.addEventListener('input',function(e){if(e.target.classList.contains('table-search'))applyTableFilters(e.target.closest('.card'))});
+  document.addEventListener('click',function(e){
+    var period=e.target.closest('.segment button');
+    if(period){var parent=period.closest('.card');if(parent){parent.dataset.period=period.textContent.trim();var note=parent.querySelector('.chart-footnote');if(note)note.innerHTML='<i></i>'+period.textContent.trim()+' 视图 · 数据已更新';}}
   });
-  const cq=document.getElementById('contentQuery'); if(cq)cq.oninput=e=>{state.contentQuery=e.target.value;debouncedRoute()};
-  const cc=document.getElementById('contentCategory');if(cc)cc.onchange=e=>{state.contentCategory=e.target.value;route()};
-  const cs=document.getElementById('contentStatus');if(cs)cs.onchange=e=>{state.contentStatus=e.target.value;route()};
-  const csort=document.getElementById('contentSort');if(csort)csort.onchange=e=>{state.contentSort=e.target.value;route()};
-  const tq=document.getElementById('taskQuery');if(tq)tq.oninput=e=>{state.taskQuery=e.target.value;debouncedRoute()};
-  const tt=document.getElementById('taskType');if(tt)tt.onchange=e=>{state.taskType=e.target.value;route()};
-  const tp=document.getElementById('taskPriority');if(tp)tp.onchange=e=>{state.taskPriority=e.target.value;route()};
-  const ts=document.getElementById('taskStatus');if(ts)ts.onchange=e=>{state.taskStatus=e.target.value;route()};
-  const sideInput=document.getElementById('aiSideInput');if(sideInput)sideInput.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI('aiSideInput')}};
-  const pageInput=document.getElementById('aiPageInput');if(pageInput)pageInput.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI('aiPageInput')}};
-}
-let debounceTimer;function debouncedRoute(){clearTimeout(debounceTimer);debounceTimer=setTimeout(()=>{const active=document.activeElement?.id;const pos=document.activeElement?.selectionStart;route();if(active){const el=document.getElementById(active);if(el){el.focus();if(typeof pos==='number')el.setSelectionRange(pos,pos)}}},160)}
-window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();state.overlay='command';route();setTimeout(()=>document.getElementById('cmdInput')?.focus(),10)}if(e.key==='Escape'&&state.overlay){state.overlay=null;route()}})
-route();
+})();
+var growthV6Script=document.createElement('script');growthV6Script.src='product-v6.js';growthV6Script.async=false;document.head.appendChild(growthV6Script);
+
