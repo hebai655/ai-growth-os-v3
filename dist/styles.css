@@ -170,3 +170,18 @@ body { background: var(--ui-bg) !important; color: var(--ui-text) !important; fo
   .growth-mobile-more-grid{grid-template-columns:repeat(3,1fr)}
   .plans-compare-table{min-width:520px}
 }
+/* Landing page mobile overflow guard */
+.landing-hero,.landing-hero-copy,.landing-hero-visual,.landing-window,.landing-window-content,.landing-mini-main{min-width:0;max-width:100%}
+@media(max-width:760px){
+  .landing-page{overflow-x:hidden}
+  .landing-hero-copy,.landing-hero-visual{width:100%;min-width:0}
+  .landing-hero h1{font-size:clamp(34px,10vw,42px);letter-spacing:-1.6px;overflow-wrap:anywhere;word-break:break-word}
+  .landing-hero-lead{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+  .landing-window{transform:none;width:100%;max-width:100%}
+  .landing-window-content{width:100%;grid-template-columns:30px minmax(0,1fr)}
+  .landing-mini-main{width:100%;overflow:hidden}
+  .landing-mini-heading,.landing-mini-metrics,.landing-mini-chart,.landing-mini-list{max-width:100%;min-width:0}
+  .landing-mini-heading{gap:6px}.landing-mini-heading b{overflow-wrap:anywhere}
+  .landing-mini-list span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .landing-float{max-width:calc(100% - 12px);overflow:hidden}
+}
