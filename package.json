@@ -1,0 +1,15 @@
+{
+  "name": "ai-growth-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Growth OS local backend and frontend preview",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node preview-server.cjs",
+    "dev": "node preview-server.cjs",
+    "check": "node --check preview-server.cjs && node --check server-store.cjs && node --check dist/app.js && node --check prompts/xiaohongshu-generation.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

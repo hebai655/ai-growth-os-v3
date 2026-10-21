@@ -1,0 +1,6 @@
+{
+  "name": "a2afans-agent-clone",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": { "start": "node agent-clone-server.cjs", "check": "node --check agent-clone-core.cjs && node --check agent-xhs-operator.cjs && node --check agent-content-strategist.cjs && node --check agent-wechat-operator.cjs && node --check agent-xhs-analyzer.cjs && node --check agent-clone-server.cjs" }
+}

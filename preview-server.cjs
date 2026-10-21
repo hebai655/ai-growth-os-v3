@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const storeApi = require('./server-store.cjs');
+const {SYSTEM_PROMPT: generationSystemPrompt, buildUserPrompt} = require('./prompts/xiaohongshu-generation.cjs');
 
 const envFile = path.join(__dirname, '.env');
 if (typeof process.loadEnvFile === 'function' && fs.existsSync(envFile)) {
@@ -30,10 +31,13 @@ function getProviderConfig(provider, userId) { const list=providerConfigs(); con
 function providerMetadata(userId) { const active=storeApi.aiProviderFor(userId); return {active,providers:providerConfigs().map(item=>({id:item.id,name:item.name,model:item.model,baseUrl:item.baseUrl,configured:Boolean(item.apiKey),selected:item.id===active}))}; }
 
 const allowedPlatforms = new Set(['xiaohongshu']);
+const allowedAdvancedStyles = new Set(['storytelling', 'data_driven', 'contrarian', 'premium']);
 const aiRateLimit = Number(process.env.AI_RATE_LIMIT || 30);
 const aiRateWindowMs = Number(process.env.AI_RATE_WINDOW_MS || 60 * 60 * 1000);
 const aiInputCostPerMillion = Number(process.env.AI_INPUT_COST_PER_MILLION || 0.27);
 const aiOutputCostPerMillion = Number(process.env.AI_OUTPUT_COST_PER_MILLION || 1.10);
+const authDevMode = String(process.env.AUTH_DEV_MODE || (process.env.NODE_ENV === 'production' ? 'false' : 'true')).toLowerCase() === 'true';
+const activeGenerationUsers = new Set();
 
 const root = path.join(__dirname, 'dist');
 const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
@@ -56,19 +60,83 @@ function apiError(res, status, code, message) {
 function apiSuccess(res, data) {
   return json(res, 200, {ok:true, data:data});
 }
+function healthData() {
+  const store = storeApi.readStore();
+  return {
+    service: 'ai-growth-os-api',
+    status: 'ok',
+    version: '0.1.0',
+    persistence: 'local-json',
+    database: process.env.DATABASE_URL ? 'configured-not-connected' : 'not-configured',
+    aiProviders: providerConfigs().map(item => ({id:item.id, configured:Boolean(item.apiKey)})),
+    counts: {users:store.users.length, accounts:store.accounts.length, generationRecords:store.generationRecords.length},
+    checkedAt: new Date().toISOString()
+  };
+}
 function parseCookies(req) {
   return String(req.headers.cookie || '').split(';').reduce((all, part) => { const index = part.indexOf('='); if (index > 0) all[part.slice(0, index).trim()] = decodeURIComponent(part.slice(index + 1).trim()); return all; }, {});
 }
 function setSessionCookie(res, token) {
-  res.setHeader('Set-Cookie', 'xhs_session=' + encodeURIComponent(token) + '; HttpOnly; SameSite=Lax; Path=/; Max-Age=1209600');
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  res.setHeader('Set-Cookie', 'xhs_session=' + encodeURIComponent(token) + '; HttpOnly; SameSite=Lax; Path=/; Max-Age=1209600' + secure);
 }
 function clearSessionCookie(res) {
-  res.setHeader('Set-Cookie', 'xhs_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  res.setHeader('Set-Cookie', 'xhs_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0' + secure);
 }
-function session(req) { return storeApi.sessionUser(parseCookies(req).xhs_session); }
+function csrfGuard(req, res) {
+  if (!['POST','PUT','PATCH','DELETE'].includes(req.method)) return true;
+  const origin = String(req.headers.origin || '').trim();
+  if (!origin) return true;
+  const host = String(req.headers.host || '').trim();
+  if (origin === 'http://' + host || origin === 'https://' + host) return true;
+  apiError(res, 403, 'CSRF_ORIGIN_INVALID', '请求来源未通过安全校验');
+  return false;
+}
+function session(req) { const current = storeApi.sessionUser(parseCookies(req).xhs_session); if (current) current.dailyGrant = storeApi.grantDailyCredits(current.userId); return current; }
 function requireSession(req, res) { const current = session(req); if (!current) { apiError(res, 401, 'AUTH_REQUIRED', '请先登录'); return null; } return current; }
 function requestKey(req, current) { return current ? current.userId : (req.socket.remoteAddress || 'unknown'); }
 function estimateTokens(value) { return Math.max(1, Math.ceil(String(value || '').length / 4)); }
+function normalizeModelJson(text) {
+  const raw = String(text || '').trim();
+  if (!raw || raw.length > 30000) return {error: 'AI_RESPONSE_INVALID', message: 'AI 返回内容为空或超出长度限制'};
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { return {error: 'AI_RESPONSE_INVALID', message: 'AI 返回的不是合法 JSON'}; }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {error: 'AI_SCHEMA_INVALID', message: 'AI 返回结构必须是 JSON 对象'};
+  if (!Array.isArray(parsed.titles) || parsed.titles.length !== 10) return {error: 'AI_SCHEMA_INVALID', message: 'AI 返回的 titles 必须恰好包含 10 条'};
+  const seen = new Set();
+  const titles = parsed.titles.map((item, index) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return {error: 'AI_SCHEMA_INVALID', message: `第 ${index + 1} 条标题必须是对象`};
+    const title = typeof item.title === 'string' ? item.title.trim() : '';
+    const style = typeof item.style === 'string' ? item.style.trim() : '';
+    if (!title || !style) return {error: 'AI_SCHEMA_INVALID', message: `第 ${index + 1} 条标题缺少 title 或 style`};
+    if (title.length < 4 || title.length > 80) return {error: 'AI_SCHEMA_INVALID', message: `第 ${index + 1} 条标题长度必须为 4 至 80 个字符`};
+    if (style.length > 24) return {error: 'AI_SCHEMA_INVALID', message: `第 ${index + 1} 条标题风格过长`};
+    const key = title.replace(/[\\s，。！？、,.!?；;:：“”‘’「」【】（）()《》<>—_\-]/g, '').toLowerCase();
+    if (seen.has(key)) return {error: 'AI_SCHEMA_INVALID', message: 'AI 返回了重复标题'};
+    seen.add(key);
+    return {title, style};
+  });
+  const invalid = titles.find(item => item && item.error);
+  if (invalid) return invalid;
+  const stringField = (key, max) => typeof parsed[key] === 'string' ? parsed[key].trim().slice(0, max) : '';
+  const listField = (key, itemMax, listMax) => Array.isArray(parsed[key]) ? parsed[key].filter(item => typeof item === 'string').map(item => item.trim().slice(0, itemMax)).filter(Boolean).slice(0, listMax) : [];
+  return {value: {
+    title: titles[0].title,
+    titles,
+    summary: stringField('summary', 600),
+    positioning: stringField('positioning', 1000),
+    angle: stringField('angle', 1000),
+    audience: stringField('audience', 1000),
+    hook: stringField('hook', 2000),
+    structure: stringField('structure', 2000),
+    body: stringField('body', 12000),
+    visualPlan: listField('visualPlan', 300, 8),
+    hashtags: listField('hashtags', 80, 12),
+    cta: stringField('cta', 1000),
+    publishAdvice: stringField('publishAdvice', 1200)
+  }};
+}
 async function authRegister(req, res) {
   let body; try { body = await readBody(req); } catch (error) { return apiError(res, 400, 'INVALID_JSON', '请求体必须是有效 JSON'); }
   const email = String(body.email || '').trim().toLowerCase(); const password = String(body.password || '');
@@ -76,17 +144,29 @@ async function authRegister(req, res) {
   if (password.length < 8) return apiError(res, 400, 'AUTH_PASSWORD_WEAK', '密码至少需要 8 位字符');
   const result = storeApi.createUser(email, password, body.name);
   if (result.error) return apiError(res, 409, result.error, '该邮箱已经注册');
-  setSessionCookie(res, result.token); return apiSuccess(res, {user: result.user, source: 'server'});
+  const verificationUrl = authDevMode ? '/api/auth/verify-email?token=' + encodeURIComponent(result.verificationToken) : null;
+  return apiSuccess(res, {user: result.user, source: 'server', verificationRequired:true, verificationUrl, message:'注册成功，请先验证邮箱后登录'});
 }
 async function authLogin(req, res) {
   let body; try { body = await readBody(req); } catch (error) { return apiError(res, 400, 'INVALID_JSON', '请求体必须是有效 JSON'); }
   const result = storeApi.authenticate(body.email, body.password);
+  if (result.error === 'AUTH_EMAIL_UNVERIFIED') return apiError(res, 403, result.error, '请先完成邮箱验证');
   if (result.error) return apiError(res, 401, result.error, '邮箱或密码不正确');
-  setSessionCookie(res, result.token); return apiSuccess(res, {user: result.user, source: 'server'});
+  const dailyGrant = storeApi.grantDailyCredits(result.user.id);
+  setSessionCookie(res, result.token); return apiSuccess(res, {user: result.user, dailyGrant, source: 'server'});
 }
-function authSession(req, res) { const current = session(req); if (!current) return apiError(res, 401, 'AUTH_REQUIRED', '当前没有有效登录会话'); return apiSuccess(res, {user: current.user, source: 'server'}); }
+function authVerifyEmail(req, res) {
+  const token = new URL(req.url, 'http://127.0.0.1').searchParams.get('token');
+  const result = storeApi.verifyEmailToken(token);
+  if (result.error === 'AUTH_VERIFICATION_EXPIRED') return apiError(res, 410, result.error, '邮箱验证链接已过期，请重新注册或申请新的验证邮件');
+  if (result.error) return apiError(res, 400, result.error, '邮箱验证链接无效');
+  return apiSuccess(res, {user:result.user, verified:true, source:'server', message:'邮箱验证成功，请返回登录'});
+}
+function authSession(req, res) { const current = session(req); if (!current) return apiError(res, 401, 'AUTH_REQUIRED', '当前没有有效登录会话'); return apiSuccess(res, {user: current.user, dailyGrant: current.dailyGrant, source: 'server'}); }
 function authLogout(req, res) { storeApi.destroySession(parseCookies(req).xhs_session); clearSessionCookie(res); return apiSuccess(res, {source: 'server'}); }
 function getUserData(req, res) { const current = requireSession(req, res); if (!current) return; return apiSuccess(res, storeApi.userData(current.userId)); }
+function generationHistory(req, res) { const current = requireSession(req, res); if (!current) return; const params = new URL(req.url, 'http://127.0.0.1').searchParams; return apiSuccess(res, storeApi.listGenerationRecords(current.userId, params.get('page'), params.get('pageSize'), params.get('q'))); }
+function generationHistoryDetail(req, res, pathname) { const current = requireSession(req, res); if (!current) return; let recordId; try { recordId = decodeURIComponent(pathname.slice('/api/history/'.length)); } catch { return apiError(res, 400, 'HISTORY_ID_INVALID', '历史记录 ID 无效'); } const record = storeApi.generationRecord(current.userId, recordId); if (!record) return apiError(res, 404, 'HISTORY_NOT_FOUND', '历史记录不存在'); return apiSuccess(res, record); }
 async function putUserData(req, res) { const current = requireSession(req, res); if (!current) return; let body; try { body = await readBody(req); } catch (error) { return apiError(res, 400, 'INVALID_JSON', '请求体必须是有效 JSON'); } return apiSuccess(res, storeApi.replaceUserData(current.userId, body || {})); }
 function aiUsage(req, res) { const current = requireSession(req, res); if (!current) return; return apiSuccess(res, storeApi.aiUsage(current.userId)); }
 function aiProviders(req,res) { const current=requireSession(req,res); if(!current)return; return apiSuccess(res,Object.assign({source:'server'},providerMetadata(current.userId))); }
@@ -125,46 +205,80 @@ async function generateContent(req, res) {
   } catch (error) {
     return apiError(res, 400, 'INVALID_JSON', error.message === 'request too large' ? '请求内容过大' : '请求体必须是有效 JSON');
   }
-  const content = typeof body.content === 'string' ? body.content.trim() : '';
-  const platform = typeof body.platform === 'string' ? body.platform.trim().toLowerCase() : '';
-  if (!content) return apiError(res, 400, 'CONTENT_REQUIRED', 'content 不能为空');
-  if (content.length > aiServerConfig.maxInputChars) return apiError(res, 400, 'CONTENT_TOO_LONG', 'content 超出长度限制');
-  if (!platform) return apiError(res, 400, 'PLATFORM_REQUIRED', 'platform 不能为空');
-  if (!allowedPlatforms.has(platform)) return apiError(res, 400, 'PLATFORM_UNSUPPORTED', '当前仅支持 platform=xiaohongshu');
-  const providerConfig = getProviderConfig(body.provider, current && current.userId);
-  if (!providerConfig.apiKey) return apiError(res, 503, 'AI_CONFIG_MISSING', '服务端未配置当前 AI 供应商 API Key');
-  const quota = storeApi.allowAI(current && current.userId, requestKey(req, current), aiRateLimit, aiRateWindowMs);
-  if (!quota.allowed) { res.setHeader('Retry-After', String(quota.retryAfter || 60)); return apiError(res, 429, 'AI_RATE_LIMITED', 'AI 调用次数已达到当前窗口上限'); }
-  let target;
-  const startedAt = Date.now();
-  try {
-    target = endpointUrl(providerConfig.baseUrl, '/chat/completions');
-  } catch (error) {
-    return apiError(res, 500, 'AI_CONFIG_INVALID', '服务端 AI 地址配置无效');
+  const rawRequestId = typeof body.requestId === 'string' ? body.requestId.trim() : '';
+  if (rawRequestId && !/^[A-Za-z0-9._:-]{1,128}$/.test(rawRequestId)) return apiError(res, 400, 'REQUEST_ID_INVALID', 'requestId 格式无效');
+  const requestId = rawRequestId || crypto.randomUUID();
+  const previous = storeApi.generationByRequestId(current.userId, requestId);
+  if (previous) {
+    return apiSuccess(res, {platform:previous.platform, model:previous.model, result:previous.resultJson, content:JSON.stringify(previous.resultJson || {}), requestId, generationId:previous.id, usage:{charged:0, replayed:true}, source:'server'});
   }
-  const messages = [
-    {role:'system', content:'你是小红书资深内容策略师。请基于用户提供的 Brief 生成完整发布方案。只返回严格 JSON，不要 Markdown 代码块，不要解释过程。字段必须包含 title、titles（标题数组）、summary、positioning、angle、audience、hook、structure、body、visualPlan（数组）、hashtags（数组）、cta、publishAdvice。'},
-    {role:'user', content:'发布平台：xiaohongshu\n\n素材内容：\n<content>\n' + content + '\n</content>'}
-  ];
+  const lockKey = current.userId;
+  if (activeGenerationUsers.has(lockKey)) return apiError(res, 409, 'GENERATION_IN_PROGRESS', '当前账号已有生成请求进行中，请稍后重试');
+  activeGenerationUsers.add(lockKey);
   try {
-    const upstream = await fetch(target, {
-      method:'POST',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer ' + providerConfig.apiKey},
-      signal:AbortSignal.timeout(aiServerConfig.timeoutMs),
-      body:JSON.stringify({model:providerConfig.model, temperature:.4, max_tokens:aiServerConfig.maxOutputTokens, messages:messages})
-    });
-    const text = await upstream.text();
-    let payload;
-    try { payload = text ? JSON.parse(text) : {}; } catch (error) { payload = {}; }
-    if (!upstream.ok) { storeApi.logAICall(current && current.userId, {kind:'generate', model:providerConfig.model, status:'provider_error', latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:0}); return apiError(res, 502, 'AI_PROVIDER_ERROR', 'AI 服务商请求失败'); }
-    const generated = payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content;
-    if (typeof generated !== 'string' || !generated.trim()) { storeApi.logAICall(current && current.userId, {kind:'generate', model:providerConfig.model, status:'invalid_response', latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:0}); return apiError(res, 502, 'AI_RESPONSE_INVALID', 'AI 服务商返回内容无效'); }
-    const outputTokens = estimateTokens(generated); storeApi.logAICall(current && current.userId, {kind:'generate', model:providerConfig.model, status:'success', latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens, estimatedCost:(estimateTokens(content)/1000000)*aiInputCostPerMillion+(outputTokens/1000000)*aiOutputCostPerMillion});
-    return apiSuccess(res, {platform:platform, model:providerConfig.model, content:generated.trim(), source:'server'});
-  } catch (error) {
-    const code = error && (error.name === 'TimeoutError' || error.name === 'AbortError') ? 'AI_TIMEOUT' : 'AI_NETWORK_ERROR'; storeApi.logAICall(current && current.userId, {kind:'generate', model:providerConfig.model, status:code, latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:0});
-    if (code === 'AI_TIMEOUT') return apiError(res, 504, code, 'AI 服务请求超时');
-    return apiError(res, 502, code, '无法连接 AI 服务商');
+    const content = typeof body.content === 'string' ? body.content.trim() : '';
+    const platform = typeof body.platform === 'string' ? body.platform.trim().toLowerCase() : '';
+    const contentType = typeof body.contentType === 'string' && body.contentType.trim() ? body.contentType.trim().slice(0, 80) : 'title';
+    const advancedStyle = typeof body.advancedStyle === 'string' ? body.advancedStyle.trim().toLowerCase() : '';
+    if (!content) return apiError(res, 400, 'CONTENT_REQUIRED', 'content 不能为空');
+    if (content.length > aiServerConfig.maxInputChars) return apiError(res, 400, 'CONTENT_TOO_LONG', 'content 超出长度限制');
+    if (!platform) return apiError(res, 400, 'PLATFORM_REQUIRED', 'platform 不能为空');
+    if (!allowedPlatforms.has(platform)) return apiError(res, 400, 'PLATFORM_UNSUPPORTED', '当前仅支持 platform=xiaohongshu');
+    if (advancedStyle && !allowedAdvancedStyles.has(advancedStyle)) return apiError(res, 400, 'AI_STYLE_UNSUPPORTED', '当前高级风格不可用');
+    const membership = storeApi.membershipFor(current.userId);
+    if (advancedStyle && membership.level !== 'PRO') return apiError(res, 403, 'MEMBERSHIP_REQUIRED', '该高级风格仅限 PRO 会员');
+    const logGeneration = (meta) => storeApi.logAICall(current.userId, Object.assign({kind:'generate', requestId, input:content, platform, contentType, advancedStyle, membership:membership.level}, meta));
+    const providerConfig = getProviderConfig(body.provider, current.userId);
+    if (!providerConfig.apiKey) { logGeneration({model:providerConfig.model, status:'config_missing'}); return apiError(res, 503, 'AI_CONFIG_MISSING', '服务端未配置当前 AI 供应商 API Key'); }
+    const usageBefore = storeApi.usageData(current.userId);
+    if (Number(usageBefore.credits || 0) < 1) { logGeneration({model:providerConfig.model, status:'insufficient_credits'}); return apiError(res, 402, 'INSUFFICIENT_CREDITS', '积分余额不足，请升级套餐后再试'); }
+    const quota = storeApi.allowAI(current.userId, requestKey(req, current), aiRateLimit, aiRateWindowMs);
+    if (!quota.allowed) { logGeneration({model:providerConfig.model, status:'rate_limited'}); res.setHeader('Retry-After', String(quota.retryAfter || 60)); return apiError(res, 429, 'AI_RATE_LIMITED', 'AI 调用次数已达到当前窗口上限'); }
+    let target;
+    const startedAt = Date.now();
+    try {
+      target = endpointUrl(providerConfig.baseUrl, '/chat/completions');
+    } catch (error) {
+      logGeneration({model:providerConfig.model, status:'config_invalid', latencyMs:Date.now()-startedAt});
+      return apiError(res, 500, 'AI_CONFIG_INVALID', '服务端 AI 地址配置无效');
+    }
+    const messages = [
+      {role:'system', content:generationSystemPrompt},
+      {role:'user', content:buildUserPrompt({content, platform, contentType:body.contentType, advancedStyle, count:10})}
+    ];
+    try {
+      const upstream = await fetch(target, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', Authorization:'Bearer ' + providerConfig.apiKey},
+        signal:AbortSignal.timeout(aiServerConfig.timeoutMs),
+        body:JSON.stringify({model:providerConfig.model, temperature:.4, max_tokens:aiServerConfig.maxOutputTokens, response_format:{type:'json_object'}, messages:messages})
+      });
+      const text = await upstream.text();
+      let payload;
+      try { payload = text ? JSON.parse(text) : {}; } catch (error) { payload = {}; }
+      if (!upstream.ok) { logGeneration({model:providerConfig.model, status:'provider_error', latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:0}); return apiError(res, 502, 'AI_PROVIDER_ERROR', 'AI 服务商请求失败'); }
+      const choice = payload.choices && payload.choices[0];
+      if (choice && choice.finish_reason === 'length') { logGeneration({model:providerConfig.model, status:'ai_response_truncated', latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:estimateTokens(choice.message && choice.message.content)}); return apiError(res, 502, 'AI_RESPONSE_TRUNCATED', 'AI 输出被截断，请将 AI_MAX_OUTPUT_TOKENS 调高后重试'); }
+      const generated = choice && choice.message && choice.message.content;
+      if (typeof generated !== 'string' || !generated.trim()) { logGeneration({model:providerConfig.model, status:'invalid_response', latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:0}); return apiError(res, 502, 'AI_RESPONSE_INVALID', 'AI 服务商返回内容无效'); }
+      const normalized = normalizeModelJson(generated);
+      const outputTokens = estimateTokens(generated);
+      if (normalized.error) { logGeneration({model:providerConfig.model, status:normalized.error.toLowerCase(), latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens}); return apiError(res, 502, normalized.error, normalized.message); }
+      const result = normalized.value;
+      const latencyMs = Date.now() - startedAt;
+      logGeneration({model:providerConfig.model, status:'success', latencyMs, inputTokens:estimateTokens(content), outputTokens, estimatedCost:(estimateTokens(content)/1000000)*aiInputCostPerMillion+(outputTokens/1000000)*aiOutputCostPerMillion});
+      const usage = storeApi.recordUsage(current.userId, 'generate', 1, {model:providerConfig.model, platform, requestId});
+      const generation = storeApi.createGenerationRecord(current.userId, {requestId, inputText:content, platform, contentType, provider:providerConfig.id, model:providerConfig.model, resultJson:result, creditsCharged:usage.units, createdAt:new Date(startedAt).toISOString(), completedAt:new Date().toISOString(), latencyMs});
+      if (generation.error) return apiError(res, 500, 'GENERATION_RECORD_FAILED', '生成结果保存失败，请稍后重试');
+      return apiSuccess(res, {platform:platform, model:providerConfig.model, result, content:JSON.stringify(result), requestId, generationId:generation.id, usage:{credits:Math.max(0, Number(usageBefore.credits || 0) - usage.units), charged:usage.units}, source:'server'});
+    } catch (error) {
+      const code = error && (error.name === 'TimeoutError' || error.name === 'AbortError') ? 'AI_TIMEOUT' : 'AI_NETWORK_ERROR';
+      logGeneration({model:providerConfig.model, status:code, latencyMs:Date.now()-startedAt, inputTokens:estimateTokens(content), outputTokens:0});
+      if (code === 'AI_TIMEOUT') return apiError(res, 504, code, 'AI 服务请求超时');
+      return apiError(res, 502, code, '无法连接 AI 服务商');
+    }
+  } finally {
+    activeGenerationUsers.delete(lockKey);
   }
 }
 async function proxy(req, res, kind) {
@@ -201,16 +315,24 @@ async function proxy(req, res, kind) {
     res.writeHead(upstream.status, {'Content-Type':upstream.headers.get('content-type') || 'application/json', 'Cache-Control':'no-store'});
     res.end(text);
   } catch (error) {
-    return apiError(res, 502, kind === 'account' ? 'ACCOUNT_PROVIDER_ERROR' : 'AI_NETWORK_ERROR', error.message || 'proxy request failed');
+    return apiError(res, 502, kind === 'account' ? 'ACCOUNT_PROVIDER_ERROR' : 'AI_NETWORK_ERROR', kind === 'account' ? '账号服务暂时不可用' : 'AI 服务暂时不可用');
   }
 }
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
+  const incomingRequestId = String(req.headers['x-request-id'] || '').trim();
+  const requestId = /^[A-Za-z0-9._:-]{1,128}$/.test(incomingRequestId) ? incomingRequestId : crypto.randomUUID();
+  res.setHeader('X-Request-Id', requestId);
+  if (!csrfGuard(req, res)) return;
+  if (req.method === 'GET' && url.pathname === '/api/health') return apiSuccess(res, healthData());
   if (req.method === 'POST' && url.pathname === '/api/auth/register') return authRegister(req, res);
   if (req.method === 'POST' && url.pathname === '/api/auth/login') return authLogin(req, res);
   if (req.method === 'GET' && url.pathname === '/api/auth/session') return authSession(req, res);
   if (req.method === 'POST' && url.pathname === '/api/auth/logout') return authLogout(req, res);
+  if (req.method === 'GET' && url.pathname === '/api/auth/verify-email') return authVerifyEmail(req, res);
   if (req.method === 'GET' && url.pathname === '/api/data') return getUserData(req, res);
+  if (req.method === 'GET' && url.pathname === '/api/history') return generationHistory(req, res);
+  if (req.method === 'GET' && url.pathname.startsWith('/api/history/')) return generationHistoryDetail(req, res, url.pathname);
   if (req.method === 'PUT' && url.pathname === '/api/data') return putUserData(req, res);
   if (req.method === 'GET' && url.pathname === '/api/analytics') return analyticsData(req, res);
   if (req.method === 'POST' && url.pathname === '/api/account/sync') return accountSync(req, res);
